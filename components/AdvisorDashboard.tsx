@@ -147,6 +147,17 @@ const AdvisorDashboard: React.FC<Props> = ({ user, onLogout }) => {
     setFacultyError('');
 
     try {
+      // Check if this faculty (by email) already teaches a subject in the same semester
+      const existingInSameSem = faculty.find(f =>
+        f.email === newFaculty.email &&
+        f.currentSem === newFaculty.currentSem
+      );
+
+      if (existingInSameSem) {
+        setFacultyError(`This faculty is already teaching ${existingInSameSem.subjectName} in Semester ${newFaculty.currentSem}. A faculty cannot teach multiple subjects in the same semester.`);
+        return;
+      }
+
       const facultyObj: User = {
         ...newFaculty as User,
         id: crypto.randomUUID(),
@@ -157,7 +168,7 @@ const AdvisorDashboard: React.FC<Props> = ({ user, onLogout }) => {
 
       await userApi.create(facultyObj);
       setFaculty(prev => [...prev, facultyObj]);
-      setNewFaculty({ name: '', email: '', password: '12345678', subjectCode: '', subjectName: '', year: '1' });
+      setNewFaculty({ name: '', email: '', password: '12345678', subjectCode: '', subjectName: '', year: '1', currentSem: '1' });
     } catch (err: any) {
       setFacultyError(err.response?.data?.message || 'Failed to register faculty');
     }
@@ -173,7 +184,20 @@ const AdvisorDashboard: React.FC<Props> = ({ user, onLogout }) => {
   };
 
   const updateFaculty = async (id: string, updatedData: Partial<User>) => {
+    setFacultyError('');
     try {
+      // Check if this faculty (by email) already teaches a subject in the same semester (excluding current record)
+      const existingInSameSem = faculty.find(f =>
+        f.id !== id &&
+        f.email === updatedData.email &&
+        f.currentSem === updatedData.currentSem
+      );
+
+      if (existingInSameSem) {
+        setFacultyError(`This faculty is already teaching ${existingInSameSem.subjectName} in Semester ${updatedData.currentSem}. A faculty cannot teach multiple subjects in the same semester.`);
+        return;
+      }
+
       await userApi.update(id, updatedData);
       setFaculty(prev => prev.map(f => f.id === id ? { ...f, ...updatedData } : f));
       setEditingFaculty(null);
