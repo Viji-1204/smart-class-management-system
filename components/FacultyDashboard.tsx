@@ -20,6 +20,7 @@ const FacultyDashboard: React.FC<Props> = ({ user, onLogout }) => {
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '' });
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -202,24 +203,32 @@ const FacultyDashboard: React.FC<Props> = ({ user, onLogout }) => {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className="flex h-screen bg-slate-50 overflow-hidden">
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="w-64 bg-slate-900 text-white flex flex-col">
+      <div className={`${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col transition-transform duration-300 ease-in-out`}>
         <div className="p-6 border-b border-slate-800">
           <h2 className="text-xl font-bold text-blue-400">Faculty Portal</h2>
           <p className="text-xs text-slate-400 mt-1">{user.subjectName}</p>
           <p className="text-xs text-slate-500">{user.year} Year | {user.department}</p>
         </div>
         <nav className="flex-1 p-4 space-y-2">
-          <button onClick={() => setActiveTab('students')} className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${activeTab === 'students' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
+          <button onClick={() => { setActiveTab('students'); setMobileMenuOpen(false); }} className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${activeTab === 'students' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
             <Users size={20} />
             <span>Class Students</span>
           </button>
-          <button onClick={() => setActiveTab('marks')} className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${activeTab === 'marks' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
+          <button onClick={() => { setActiveTab('marks'); setMobileMenuOpen(false); }} className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${activeTab === 'marks' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
             <ClipboardList size={20} />
             <span>Internal Marks</span>
           </button>
-          <button onClick={() => setActiveTab('settings')} className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${activeTab === 'settings' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
+          <button onClick={() => { setActiveTab('settings'); setMobileMenuOpen(false); }} className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${activeTab === 'settings' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
             <Settings size={20} />
             <span>Settings</span>
           </button>
@@ -230,183 +239,196 @@ const FacultyDashboard: React.FC<Props> = ({ user, onLogout }) => {
         </button>
       </div>
 
-      <div className="flex-1 overflow-auto p-8">
-        <header className="mb-8 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-slate-800">
-            {activeTab === 'students' ? 'Student List' : activeTab === 'marks' ? 'Enter Assessment Marks' : 'Settings'}
-          </h1>
-          <div className="text-slate-500 text-sm">Faculty: {user.name}</div>
-        </header>
+      <div className="flex-1 overflow-auto">
+        {/* Mobile Header */}
+        <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+          <button onClick={() => setMobileMenuOpen(true)} className="p-2 hover:bg-slate-100 rounded-lg">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <h1 className="text-lg font-bold text-slate-800">Faculty Portal</h1>
+          <div className="w-10" /> {/* Spacer for centering */}
+        </div>
 
-        {activeTab === 'students' && (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <table className="w-full text-left">
-              <thead className="bg-slate-50 border-b">
-                <tr>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Roll No</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Name</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Email</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Sem</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {students.map(s => (
-                  <tr key={s.id} className="hover:bg-slate-50">
-                    <td className="px-6 py-4 font-medium">{s.rollNo}</td>
-                    <td className="px-6 py-4">{s.name}</td>
-                    <td className="px-6 py-4 text-slate-500">{s.email}</td>
-                    <td className="px-6 py-4">{s.currentSem}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <div className="p-4 lg:p-8">
+          <header className="mb-6 lg:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h1 className="text-xl lg:text-2xl font-bold text-slate-800">
+              {activeTab === 'students' ? 'Student List' : activeTab === 'marks' ? 'Enter Assessment Marks' : 'Settings'}
+            </h1>
+            <div className="text-slate-500 text-sm lg:text-base">Faculty: {user.name}</div>
+          </header>
 
-        {activeTab === 'marks' && (
-          <div className="space-y-6">
-            {successMessage && (
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-700 font-medium">{successMessage}</p>
-              </div>
-            )}
-            <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-              <span className="font-semibold">Select Semester:</span>
-              {[1, 2].map(num => (
-                <button
-                  key={num}
-                  onClick={() => setSelectedSemester(num.toString())}
-                  className={`px-4 py-1 rounded-full text-sm font-bold transition ${selectedSemester === num.toString() ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}
-                >
-                  Semester {num}
-                </button>
-              ))}
-            </div>
-            <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-              <span className="font-semibold">Select Internal:</span>
-              {[1, 2].map(num => (
-                <button
-                  key={num}
-                  onClick={() => setSelectedInternal(num as 1 | 2)}
-                  className={`px-4 py-1 rounded-full text-sm font-bold transition ${selectedInternal === num ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'}`}
-                >
-                  Internal {num}
-                </button>
-              ))}
-            </div>
-
+          {activeTab === 'students' && (
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
               <table className="w-full text-left">
                 <thead className="bg-slate-50 border-b">
                   <tr>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Student</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Test (100)</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Conv (60)</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Assign (40)</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Total (100)</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Attend (%)</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Roll No</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Name</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Email</th>
+                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Sem</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {students.map(s => {
-                    const m = localMarks[s.id] || { test: '', assignment: '', attendance: '' };
-                    const testNum = typeof m.test === 'string' ? (m.test === '' ? NaN : parseFloat(m.test)) : m.test;
-                    return (
-                      <tr key={s.id}>
-                        <td className="px-4 py-3">
-                          <p className="font-medium text-sm">{s.name}</p>
-                          <p className="text-xs text-slate-400">{s.rollNo}</p>
-                        </td>
-                        <td className="px-4 py-3">
-                          <input type="number" max="100" value={m.test} onChange={e => updateLocalMark(s.id, 'test', e.target.value)} className="w-16 border rounded p-1 text-sm" placeholder="0" />
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-500">
-                          {isNaN(testNum) ? '' : ((testNum / 100) * 60).toFixed(1)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <input type="number" max="40" value={m.assignment} onChange={e => updateLocalMark(s.id, 'assignment', e.target.value)} className="w-16 border rounded p-1 text-sm" placeholder="0" />
-                        </td>
-                        <td className="px-4 py-3 font-bold text-blue-600">
-                          {calculateFinal(m.test, m.assignment)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <input type="number" max="100" value={m.attendance} onChange={e => updateLocalMark(s.id, 'attendance', e.target.value)} className="w-16 border rounded p-1 text-sm" placeholder="0" />
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {students.map(s => (
+                    <tr key={s.id} className="hover:bg-slate-50">
+                      <td className="px-6 py-4 font-medium">{s.rollNo}</td>
+                      <td className="px-6 py-4">{s.name}</td>
+                      <td className="px-6 py-4 text-slate-500">{s.email}</td>
+                      <td className="px-6 py-4">{s.currentSem}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
+          )}
 
-            <div className="flex justify-end">
-              <button
-                onClick={handleSubmitMarks}
-                className="bg-green-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg hover:bg-green-700 transition"
-              >
-                <CheckCircle size={20} /> Submit Internal {selectedInternal} Marks
-              </button>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'settings' && (
-          <div className="max-w-2xl space-y-6">
-            {/* Profile Settings */}
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
-              <h3 className="text-xl font-bold mb-6">Profile Settings</h3>
-              <form className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700">Name</label>
-                  <input type="text" defaultValue={user.name} className="mt-1 block w-full border rounded-lg p-2" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700">Email (Restricted)</label>
-                  <input disabled value={user.email} className="mt-1 block w-full border rounded-lg p-2 bg-slate-50 cursor-not-allowed" />
-                </div>
-                <button disabled className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold opacity-70">Update Profile</button>
-              </form>
-            </div>
-
-            {/* Password Change */}
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
-              <h3 className="text-xl font-bold mb-6">Change Password</h3>
-              {passwordError && (
-                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-700 text-sm font-medium">{passwordError}</p>
+          {activeTab === 'marks' && (
+            <div className="space-y-6">
+              {successMessage && (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-green-700 font-medium">{successMessage}</p>
                 </div>
               )}
-              {passwordSuccess && (
-                <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-green-700 text-sm font-medium">{passwordSuccess}</p>
-                </div>
-              )}
-              <form onSubmit={handlePasswordChange} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700">Current Password</label>
-                  <input
-                    type="password"
-                    placeholder="Enter your current password"
-                    value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                    className="mt-1 block w-full border rounded-lg p-2 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700">New Password</label>
-                  <input
-                    type="password"
-                    placeholder="Enter new password"
-                    value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                    className="mt-1 block w-full border rounded-lg p-2 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold">Change Password</button>
-              </form>
+              <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <span className="font-semibold">Select Semester:</span>
+                {[1, 2].map(num => (
+                  <button
+                    key={num}
+                    onClick={() => setSelectedSemester(num.toString())}
+                    className={`px-4 py-1 rounded-full text-sm font-bold transition ${selectedSemester === num.toString() ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}
+                  >
+                    Semester {num}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <span className="font-semibold">Select Internal:</span>
+                {[1, 2].map(num => (
+                  <button
+                    key={num}
+                    onClick={() => setSelectedInternal(num as 1 | 2)}
+                    className={`px-4 py-1 rounded-full text-sm font-bold transition ${selectedInternal === num ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'}`}
+                  >
+                    Internal {num}
+                  </button>
+                ))}
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <table className="w-full text-left">
+                  <thead className="bg-slate-50 border-b">
+                    <tr>
+                      <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Student</th>
+                      <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Test (100)</th>
+                      <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Conv (60)</th>
+                      <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Assign (40)</th>
+                      <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Total (100)</th>
+                      <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Attend (%)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {students.map(s => {
+                      const m = localMarks[s.id] || { test: '', assignment: '', attendance: '' };
+                      const testNum = typeof m.test === 'string' ? (m.test === '' ? NaN : parseFloat(m.test)) : m.test;
+                      return (
+                        <tr key={s.id}>
+                          <td className="px-4 py-3">
+                            <p className="font-medium text-sm">{s.name}</p>
+                            <p className="text-xs text-slate-400">{s.rollNo}</p>
+                          </td>
+                          <td className="px-4 py-3">
+                            <input type="number" max="100" value={m.test} onChange={e => updateLocalMark(s.id, 'test', e.target.value)} className="w-16 border rounded p-1 text-sm" placeholder="0" />
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-500">
+                            {isNaN(testNum) ? '' : ((testNum / 100) * 60).toFixed(1)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <input type="number" max="40" value={m.assignment} onChange={e => updateLocalMark(s.id, 'assignment', e.target.value)} className="w-16 border rounded p-1 text-sm" placeholder="0" />
+                          </td>
+                          <td className="px-4 py-3 font-bold text-blue-600">
+                            {calculateFinal(m.test, m.assignment)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <input type="number" max="100" value={m.attendance} onChange={e => updateLocalMark(s.id, 'attendance', e.target.value)} className="w-16 border rounded p-1 text-sm" placeholder="0" />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={handleSubmitMarks}
+                  className="bg-green-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg hover:bg-green-700 transition"
+                >
+                  <CheckCircle size={20} /> Submit Internal {selectedInternal} Marks
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="max-w-2xl space-y-6">
+              {/* Profile Settings */}
+              <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+                <h3 className="text-xl font-bold mb-6">Profile Settings</h3>
+                <form className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700">Name</label>
+                    <input type="text" defaultValue={user.name} className="mt-1 block w-full border rounded-lg p-2" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700">Email (Restricted)</label>
+                    <input disabled value={user.email} className="mt-1 block w-full border rounded-lg p-2 bg-slate-50 cursor-not-allowed" />
+                  </div>
+                  <button disabled className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold opacity-70">Update Profile</button>
+                </form>
+              </div>
+
+              {/* Password Change */}
+              <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+                <h3 className="text-xl font-bold mb-6">Change Password</h3>
+                {passwordError && (
+                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-700 text-sm font-medium">{passwordError}</p>
+                  </div>
+                )}
+                {passwordSuccess && (
+                  <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-green-700 text-sm font-medium">{passwordSuccess}</p>
+                  </div>
+                )}
+                <form onSubmit={handlePasswordChange} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700">Current Password</label>
+                    <input
+                      type="password"
+                      placeholder="Enter your current password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                      className="mt-1 block w-full border rounded-lg p-2 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700">New Password</label>
+                    <input
+                      type="password"
+                      placeholder="Enter new password"
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                      className="mt-1 block w-full border rounded-lg p-2 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold">Change Password</button>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
