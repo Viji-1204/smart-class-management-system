@@ -143,6 +143,26 @@ const AdvisorDashboard: React.FC<Props> = ({ user, onLogout }) => {
     }
   };
 
+  // Auto-generate roll number from register number
+  // Format: Register No 731123104054 -> Roll No 23CSE54
+  // Takes chars 5-6 (admission year) + department + last 2 digits
+  const generateRollNo = (registerNo: string, department: string) => {
+    if (!registerNo || registerNo.length < 12) return '';
+
+    const admissionYear = registerNo.substring(4, 6); // Positions 5-6 (0-indexed: 4-5)
+    const lastTwoDigits = registerNo.substring(registerNo.length - 2); // Last 2 digits
+
+    return `${admissionYear}${department}${lastTwoDigits}`;
+  };
+
+  const handleRegisterNoChange = (registerNo: string) => {
+    setNewStudent({
+      ...newStudent,
+      registerNo,
+      rollNo: generateRollNo(registerNo, user.department)
+    });
+  };
+
   const handleManualFacultyRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setFacultyError('');
@@ -349,15 +369,22 @@ const AdvisorDashboard: React.FC<Props> = ({ user, onLogout }) => {
 
         for (const row of rawData) {
           const name = String(row.name || row.Name || '');
-          const rollNo = String(row.rollNo || row.RollNo || '');
           const registerNo = String(row.registerNo || row.RegisterNo || '');
           const email = String(row.email || row.Email || '');
           const phone = String(row.phone || row.Phone || '');
           const parentPhone = String(row.parentPhone || row.ParentPhone || '');
           const currentSem = String(row.sem || row.Sem || row.currentSem || row.CurrentSem || '1');
 
-          if (!name || !rollNo || !email) {
-            skipped.push({ row: rollNo || name || 'Unknown', reason: 'Missing Name, Roll No, or Email' });
+          // Auto-generate roll number from register number
+          const rollNo = generateRollNo(registerNo, user.department);
+
+          if (!name || !registerNo || !email) {
+            skipped.push({ row: registerNo || name || 'Unknown', reason: 'Missing Name, Register No, or Email' });
+            continue;
+          }
+
+          if (!rollNo) {
+            skipped.push({ row: registerNo, reason: 'Invalid Register No (must be 12 digits)' });
             continue;
           }
 
@@ -544,8 +571,22 @@ const AdvisorDashboard: React.FC<Props> = ({ user, onLogout }) => {
                   {studentError && <p className="text-red-500 text-sm mb-2">{studentError}</p>}
                   <form onSubmit={handleManualStudentRegister} className="grid grid-cols-2 gap-3">
                     <input required placeholder="Name" value={newStudent.name} onChange={e => setNewStudent({ ...newStudent, name: e.target.value })} className="border rounded p-2 text-sm" />
-                    <input required placeholder="Roll No" value={newStudent.rollNo} onChange={e => setNewStudent({ ...newStudent, rollNo: e.target.value })} className="border rounded p-2 text-sm" />
-                    <input required placeholder="Reg No" value={newStudent.registerNo} onChange={e => setNewStudent({ ...newStudent, registerNo: e.target.value })} className="border rounded p-2 text-sm" />
+                    <input
+                      required
+                      placeholder="Reg No (e.g., 731123104054)"
+                      value={newStudent.registerNo}
+                      onChange={e => handleRegisterNoChange(e.target.value)}
+                      className="border rounded p-2 text-sm"
+                      maxLength={12}
+                    />
+                    <input
+                      required
+                      placeholder="Roll No (Auto-generated)"
+                      value={newStudent.rollNo}
+                      readOnly
+                      className="border rounded p-2 text-sm bg-slate-50 cursor-not-allowed"
+                      title="Auto-generated from Register Number"
+                    />
                     <input required type="email" placeholder="Email" value={newStudent.email} onChange={e => setNewStudent({ ...newStudent, email: e.target.value })} className="border rounded p-2 text-sm" />
                     <input required placeholder="Student Phone (10 digits)" value={newStudent.phone} onChange={e => setNewStudent({ ...newStudent, phone: e.target.value })} className="border rounded p-2 text-sm" />
                     <input required placeholder="Parent Phone (10 digits)" value={newStudent.parentPhone} onChange={e => setNewStudent({ ...newStudent, parentPhone: e.target.value })} className="border rounded p-2 text-sm" />
