@@ -37,12 +37,17 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/marks', require('./routes/marks'));
 
-// Initial Database Sync
-sequelize.sync({ alter: true })
-    .then(() => console.log('Database & tables integrated!'))
-    .catch(err => console.error('Unable to connect to the database:', err));
+// Database Sync (Non-blocking for serverless)
+(async () => {
+    try {
+        await sequelize.sync({ alter: true });
+        console.log('Database synced');
+    } catch (err) {
+        console.error('Database sync error (likely DB not connected yet):', err.message);
+    }
+})();
 
-// Export for Vercel Serverless
+// Export for Vercel
 module.exports = app;
 
 // Only start the server locally if not running as a serverless function
