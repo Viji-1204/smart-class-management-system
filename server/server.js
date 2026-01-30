@@ -41,13 +41,12 @@ app.use('/api/marks', require('./routes/marks'));
 (async () => {
     try {
         await sequelize.sync({ alter: true });
-        console.log('Database synced');
+        console.log('--- DATABASE SYNC SUCCESS ---');
     } catch (err) {
-        console.error('Database sync error (likely DB not connected yet):', err.message);
+        console.error('--- DATABASE SYNC ERROR ---', err.message);
     }
 })();
 
-// Export for Vercel
 module.exports = app;
 
 // Only start the server locally if not running as a serverless function
