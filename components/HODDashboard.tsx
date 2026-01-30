@@ -27,6 +27,7 @@ const HODDashboard: React.FC<Props> = ({ user, onLogout }) => {
   const [profileError, setProfileError] = useState('');
   const [profileSuccess, setProfileSuccess] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -127,22 +128,31 @@ const HODDashboard: React.FC<Props> = ({ user, onLogout }) => {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50">
-      <div className="w-64 bg-slate-900 text-white flex flex-col">
+    <div className="flex h-screen bg-slate-50 overflow-hidden">
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col transition-transform duration-300 ease-in-out`}>
         <div className="p-6 border-b border-slate-800">
           <h2 className="text-xl font-bold text-blue-400">HOD Portal</h2>
           <p className="text-xs text-slate-400 mt-1">{user.department} Dept</p>
         </div>
         <nav className="flex-1 p-4 space-y-2">
-          <button onClick={() => setActiveTab('advisors')} className={`w-full flex items-center space-x-3 p-3 rounded-lg ${activeTab === 'advisors' ? 'bg-blue-600' : ''}`}>
+          <button onClick={() => { setActiveTab('advisors'); setMobileMenuOpen(false); }} className={`w-full flex items-center space-x-3 p-3 rounded-lg ${activeTab === 'advisors' ? 'bg-blue-600' : ''}`}>
             <Users size={20} />
             <span>Class Advisors</span>
           </button>
-          <button onClick={() => setActiveTab('students')} className={`w-full flex items-center space-x-3 p-3 rounded-lg ${activeTab === 'students' ? 'bg-blue-600' : ''}`}>
+          <button onClick={() => { setActiveTab('students'); setMobileMenuOpen(false); }} className={`w-full flex items-center space-x-3 p-3 rounded-lg ${activeTab === 'students' ? 'bg-blue-600' : ''}`}>
             <GraduationCap size={20} />
             <span>Performance</span>
           </button>
-          <button onClick={() => setActiveTab('settings')} className={`w-full flex items-center space-x-3 p-3 rounded-lg ${activeTab === 'settings' ? 'bg-blue-600' : ''}`}>
+          <button onClick={() => { setActiveTab('settings'); setMobileMenuOpen(false); }} className={`w-full flex items-center space-x-3 p-3 rounded-lg ${activeTab === 'settings' ? 'bg-blue-600' : ''}`}>
             <Settings size={20} />
             <span>Settings</span>
           </button>
@@ -153,241 +163,256 @@ const HODDashboard: React.FC<Props> = ({ user, onLogout }) => {
         </button>
       </div>
 
-      <div className="flex-1 overflow-auto p-8">
-        <header className="mb-8 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-slate-800">Department Dashboard</h1>
-          <div className="text-slate-600 font-medium bg-white px-4 py-2 rounded-lg border shadow-sm">
-            Hi, <span className="text-blue-600 font-bold">{user.name}</span>
-          </div>
-        </header>
+      <div className="flex-1 overflow-auto">
+        {/* Mobile Header */}
+        <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+          <button onClick={() => setMobileMenuOpen(true)} className="p-2 hover:bg-slate-100 rounded-lg">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <h1 className="text-lg font-bold text-slate-800">HOD Portal</h1>
+          <div className="w-10" /> {/* Spacer for centering */}
+        </div>
 
-        {activeTab === 'advisors' && (
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded border">
-              <h3 className="font-bold mb-4">{editingAdvisor ? 'Edit Advisor' : 'Add Advisor'}</h3>
-              <form
-                onSubmit={editingAdvisor ? (e) => { e.preventDefault(); updateAdvisor(editingAdvisor.id, editingAdvisor); } : handleRegisterAdvisor}
-                className="grid grid-cols-4 gap-2"
-              >
-                <input
-                  required
-                  placeholder="Name"
-                  value={editingAdvisor ? editingAdvisor.name : newAdv.name}
-                  onChange={e => editingAdvisor ? setEditingAdvisor({ ...editingAdvisor, name: e.target.value }) : setNewAdv({ ...newAdv, name: e.target.value })}
-                  className="border p-2 rounded text-sm"
-                />
-                <input
-                  required
-                  type="email"
-                  placeholder="Email"
-                  value={editingAdvisor ? editingAdvisor.email : newAdv.email}
-                  onChange={e => editingAdvisor ? setEditingAdvisor({ ...editingAdvisor, email: e.target.value }) : setNewAdv({ ...newAdv, email: e.target.value })}
-                  className="border p-2 rounded text-sm"
-                />
-                <select
-                  value={editingAdvisor ? editingAdvisor.year : newAdv.year}
-                  onChange={e => editingAdvisor ? setEditingAdvisor({ ...editingAdvisor, year: e.target.value }) : setNewAdv({ ...newAdv, year: e.target.value })}
-                  className="border p-2 rounded text-sm"
+        <div className="p-4 lg:p-8">
+          <header className="mb-6 lg:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h1 className="text-xl lg:text-2xl font-bold text-slate-800">Department Dashboard</h1>
+            <div className="text-slate-600 font-medium bg-white px-4 py-2 rounded-lg border shadow-sm text-sm lg:text-base">
+              Hi, <span className="text-blue-600 font-bold">{user.name}</span>
+            </div>
+          </header>
+
+          {activeTab === 'advisors' && (
+            <div className="space-y-6">
+              <div className="bg-white p-4 lg:p-6 rounded-xl border shadow-sm">
+                <h3 className="font-bold mb-4 text-lg">{editingAdvisor ? 'Edit Advisor' : 'Add Advisor'}</h3>
+                <form
+                  onSubmit={editingAdvisor ? (e) => { e.preventDefault(); updateAdvisor(editingAdvisor.id, editingAdvisor); } : handleRegisterAdvisor}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-2"
                 >
-                  <option value="1">1st Year</option>
-                  <option value="2">2nd Year</option>
-                  <option value="3">3rd Year</option>
-                  <option value="4">4th Year</option>
-                </select>
-                <div className="flex gap-2">
-                  <button className="flex-1 bg-blue-600 text-white rounded text-sm font-bold">
-                    {editingAdvisor ? 'Update' : 'Add Advisor'}
-                  </button>
-                  {editingAdvisor && (
-                    <button
-                      type="button"
-                      onClick={() => { setEditingAdvisor(null); setAdvisorError(''); }}
-                      className="px-4 bg-slate-200 text-slate-700 rounded text-sm font-bold"
-                    >
-                      Cancel
+                  <input
+                    required
+                    placeholder="Name"
+                    value={editingAdvisor ? editingAdvisor.name : newAdv.name}
+                    onChange={e => editingAdvisor ? setEditingAdvisor({ ...editingAdvisor, name: e.target.value }) : setNewAdv({ ...newAdv, name: e.target.value })}
+                    className="border p-2 rounded text-sm"
+                  />
+                  <input
+                    required
+                    type="email"
+                    placeholder="Email"
+                    value={editingAdvisor ? editingAdvisor.email : newAdv.email}
+                    onChange={e => editingAdvisor ? setEditingAdvisor({ ...editingAdvisor, email: e.target.value }) : setNewAdv({ ...newAdv, email: e.target.value })}
+                    className="border p-2 rounded text-sm"
+                  />
+                  <select
+                    value={editingAdvisor ? editingAdvisor.year : newAdv.year}
+                    onChange={e => editingAdvisor ? setEditingAdvisor({ ...editingAdvisor, year: e.target.value }) : setNewAdv({ ...newAdv, year: e.target.value })}
+                    className="border p-2 rounded text-sm"
+                  >
+                    <option value="1">1st Year</option>
+                    <option value="2">2nd Year</option>
+                    <option value="3">3rd Year</option>
+                    <option value="4">4th Year</option>
+                  </select>
+                  <div className="flex gap-2 sm:col-span-2 lg:col-span-1">
+                    <button className="flex-1 bg-blue-600 text-white rounded text-sm font-bold py-2 hover:bg-blue-700 transition-colors">
+                      {editingAdvisor ? 'Update' : 'Add Advisor'}
                     </button>
-                  )}
-                </div>
-              </form>
-              {advisorError && <p className="text-red-500 text-xs mt-2 font-semibold">{advisorError}</p>}
-            </div>
-
-            <div className="bg-white rounded border overflow-hidden">
-              <table className="w-full text-left">
-                <thead className="bg-slate-50 border-b">
-                  <tr>
-                    <th className="px-6 py-3">Name</th>
-                    <th className="px-6 py-3">Year</th>
-                    <th className="px-6 py-3">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {advisors.map(adv => (
-                    <tr key={adv.id}>
-                      <td className="px-6 py-3 font-medium">{adv.name}</td>
-                      <td className="px-6 py-3">{adv.year} Year</td>
-                      <td className="px-6 py-3 flex gap-2">
-                        <button onClick={() => setEditingAdvisor(adv)} className="text-blue-500 text-sm">Edit</button>
-                        <button onClick={() => deleteAdvisor(adv.id)} className="text-red-500 text-sm">Delete</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'students' && (
-          <div className="space-y-6">
-            {!selectedYear ? (
-              <div className="grid grid-cols-4 gap-4">
-                {['1', '2', '3', '4'].map(year => (
-                  <div
-                    key={year}
-                    onClick={() => setSelectedYear(year)}
-                    className="bg-white p-6 rounded-xl border-2 border-slate-200 hover:border-blue-500 cursor-pointer transition-all hover:shadow-lg"
-                  >
-                    <h3 className="font-bold text-lg text-slate-800">{year}{year === '1' ? 'st' : year === '2' ? 'nd' : year === '3' ? 'rd' : 'th'} Year</h3>
-                    <p className="text-3xl font-bold text-blue-600 mt-2">{getPerformance(year)}%</p>
-                    <p className="text-xs text-slate-400 mt-1">Average Performance</p>
-                    <p className="text-sm text-blue-500 mt-3 font-semibold">Click to view details →</p>
+                    {editingAdvisor && (
+                      <button
+                        type="button"
+                        onClick={() => { setEditingAdvisor(null); setAdvisorError(''); }}
+                        className="px-4 bg-slate-200 text-slate-700 rounded text-sm font-bold hover:bg-slate-300 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    )}
                   </div>
-                ))}
+                </form>
+                {advisorError && <p className="text-red-500 text-xs mt-2 font-semibold">{advisorError}</p>}
               </div>
-            ) : (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-slate-800">
-                    {selectedYear}{selectedYear === '1' ? 'st' : selectedYear === '2' ? 'nd' : selectedYear === '3' ? 'rd' : 'th'} Year Details
-                  </h2>
-                  <button
-                    onClick={() => setSelectedYear(null)}
-                    className="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg font-semibold text-slate-700 transition-colors"
-                  >
-                    ← Back to All Years
-                  </button>
-                </div>
 
-                {/* Advisor Section */}
-                <div className="bg-white p-6 rounded-xl border border-slate-200">
-                  <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <Users size={20} className="text-blue-600" />
-                    Class Advisor
-                  </h3>
-                  {advisors.filter(a => a.year === selectedYear).map(advisor => (
-                    <div key={advisor.id} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                      <p className="font-bold text-lg text-blue-900">{advisor.name}</p>
-                      <p className="text-sm text-blue-700">{advisor.email}</p>
-                      <p className="text-xs text-blue-600 mt-1">Year {advisor.year} Advisor</p>
+              <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-slate-50 border-b">
+                      <tr>
+                        <th className="px-4 lg:px-6 py-3 text-sm lg:text-base">Name</th>
+                        <th className="px-4 lg:px-6 py-3 text-sm lg:text-base">Year</th>
+                        <th className="px-4 lg:px-6 py-3 text-sm lg:text-base">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {advisors.map(adv => (
+                        <tr key={adv.id}>
+                          <td className="px-4 lg:px-6 py-3 font-medium text-sm lg:text-base">{adv.name}</td>
+                          <td className="px-4 lg:px-6 py-3 text-sm lg:text-base">{adv.year} Year</td>
+                          <td className="px-4 lg:px-6 py-3 flex gap-2">
+                            <button onClick={() => setEditingAdvisor(adv)} className="text-blue-500 text-sm hover:text-blue-700">Edit</button>
+                            <button onClick={() => deleteAdvisor(adv.id)} className="text-red-500 text-sm hover:text-red-700">Delete</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'students' && (
+            <div className="space-y-6">
+              {!selectedYear ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {['1', '2', '3', '4'].map(year => (
+                    <div
+                      key={year}
+                      onClick={() => setSelectedYear(year)}
+                      className="bg-white p-6 rounded-xl border-2 border-slate-200 hover:border-blue-500 cursor-pointer transition-all hover:shadow-lg"
+                    >
+                      <h3 className="font-bold text-lg text-slate-800">{year}{year === '1' ? 'st' : year === '2' ? 'nd' : year === '3' ? 'rd' : 'th'} Year</h3>
+                      <p className="text-3xl font-bold text-blue-600 mt-2">{getPerformance(year)}%</p>
+                      <p className="text-xs text-slate-400 mt-1">Average Performance</p>
+                      <p className="text-sm text-blue-500 mt-3 font-semibold">Click to view details →</p>
                     </div>
                   ))}
-                  {advisors.filter(a => a.year === selectedYear).length === 0 && (
-                    <p className="text-slate-500 text-sm italic">No advisor assigned to this year yet.</p>
-                  )}
                 </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-bold text-slate-800">
+                      {selectedYear}{selectedYear === '1' ? 'st' : selectedYear === '2' ? 'nd' : selectedYear === '3' ? 'rd' : 'th'} Year Details
+                    </h2>
+                    <button
+                      onClick={() => setSelectedYear(null)}
+                      className="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg font-semibold text-slate-700 transition-colors"
+                    >
+                      ← Back to All Years
+                    </button>
+                  </div>
 
-                {/* Faculty Section */}
-                <div className="bg-white p-6 rounded-xl border border-slate-200">
-                  <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <GraduationCap size={20} className="text-green-600" />
-                    Faculty Members
-                  </h3>
-                  <div className="grid grid-cols-3 gap-4">
+                  {/* Advisor Section */}
+                  <div className="bg-white p-6 rounded-xl border border-slate-200">
+                    <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                      <Users size={20} className="text-blue-600" />
+                      Class Advisor
+                    </h3>
+                    {advisors.filter(a => a.year === selectedYear).map(advisor => (
+                      <div key={advisor.id} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <p className="font-bold text-lg text-blue-900">{advisor.name}</p>
+                        <p className="text-sm text-blue-700">{advisor.email}</p>
+                        <p className="text-xs text-blue-600 mt-1">Year {advisor.year} Advisor</p>
+                      </div>
+                    ))}
+                    {advisors.filter(a => a.year === selectedYear).length === 0 && (
+                      <p className="text-slate-500 text-sm italic">No advisor assigned to this year yet.</p>
+                    )}
+                  </div>
+
+                  {/* Faculty Section */}
+                  <div className="bg-white p-4 lg:p-6 rounded-xl border border-slate-200">
+                    <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                      <GraduationCap size={20} className="text-green-600" />
+                      Faculty Members
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {faculty.filter(f => {
+                        const yearNum = Number(selectedYear);
+                        const semStart = (yearNum - 1) * 2 + 1;
+                        const semEnd = semStart + 1;
+                        return f.currentSem === semStart.toString() || f.currentSem === semEnd.toString();
+                      }).map(fac => (
+                        <div key={fac.id} className="bg-green-50 p-4 rounded-lg border border-green-200">
+                          <p className="font-bold text-green-900">{fac.subjectName}</p>
+                          <p className="text-sm text-green-700">{fac.name}</p>
+                          <p className="text-xs text-green-600">Code: {fac.subjectCode}</p>
+                          <p className="text-xs text-green-600">Sem: {fac.currentSem}</p>
+                        </div>
+                      ))}
+                    </div>
                     {faculty.filter(f => {
                       const yearNum = Number(selectedYear);
                       const semStart = (yearNum - 1) * 2 + 1;
                       const semEnd = semStart + 1;
                       return f.currentSem === semStart.toString() || f.currentSem === semEnd.toString();
-                    }).map(fac => (
-                      <div key={fac.id} className="bg-green-50 p-4 rounded-lg border border-green-200">
-                        <p className="font-bold text-green-900">{fac.subjectName}</p>
-                        <p className="text-sm text-green-700">{fac.name}</p>
-                        <p className="text-xs text-green-600">Code: {fac.subjectCode}</p>
-                        <p className="text-xs text-green-600">Sem: {fac.currentSem}</p>
-                      </div>
-                    ))}
+                    }).length === 0 && (
+                        <p className="text-slate-500 text-sm italic">No faculty assigned to this year yet.</p>
+                      )}
                   </div>
-                  {faculty.filter(f => {
-                    const yearNum = Number(selectedYear);
-                    const semStart = (yearNum - 1) * 2 + 1;
-                    const semEnd = semStart + 1;
-                    return f.currentSem === semStart.toString() || f.currentSem === semEnd.toString();
-                  }).length === 0 && (
-                      <p className="text-slate-500 text-sm italic">No faculty assigned to this year yet.</p>
-                    )}
-                </div>
 
-                {/* Students Section */}
-                <div className="bg-white p-6 rounded-xl border border-slate-200">
-                  <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <Users size={20} className="text-purple-600" />
-                    Students ({students.filter(s => {
+                  {/* Students Section */}
+                  <div className="bg-white p-6 rounded-xl border border-slate-200">
+                    <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                      <Users size={20} className="text-purple-600" />
+                      Students ({students.filter(s => {
+                        const yearNum = Number(selectedYear);
+                        const semStart = (yearNum - 1) * 2 + 1;
+                        const semEnd = semStart + 1;
+                        return s.currentSem === semStart.toString() || s.currentSem === semEnd.toString();
+                      }).length})
+                    </h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-slate-50 border-b">
+                          <tr>
+                            <th className="px-4 py-3 font-bold text-slate-600">Roll No</th>
+                            <th className="px-4 py-3 font-bold text-slate-600">Name</th>
+                            <th className="px-4 py-3 font-bold text-slate-600">Email</th>
+                            <th className="px-4 py-3 font-bold text-slate-600">Semester</th>
+                            <th className="px-4 py-3 font-bold text-slate-600">Phone</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {students
+                            .filter(s => {
+                              const yearNum = Number(selectedYear);
+                              const semStart = (yearNum - 1) * 2 + 1;
+                              const semEnd = semStart + 1;
+                              return s.currentSem === semStart.toString() || s.currentSem === semEnd.toString();
+                            })
+                            .sort((a, b) => (a.rollNo || '').localeCompare(b.rollNo || '', undefined, { numeric: true }))
+                            .map(student => (
+                              <tr key={student.id} className="hover:bg-slate-50">
+                                <td className="px-4 py-3 font-medium">{student.rollNo}</td>
+                                <td className="px-4 py-3">{student.name}</td>
+                                <td className="px-4 py-3 text-slate-600">{student.email}</td>
+                                <td className="px-4 py-3 text-slate-600">Sem {student.currentSem}</td>
+                                <td className="px-4 py-3 text-slate-600">{student.phone}</td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {students.filter(s => {
                       const yearNum = Number(selectedYear);
                       const semStart = (yearNum - 1) * 2 + 1;
                       const semEnd = semStart + 1;
                       return s.currentSem === semStart.toString() || s.currentSem === semEnd.toString();
-                    }).length})
-                  </h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                      <thead className="bg-slate-50 border-b">
-                        <tr>
-                          <th className="px-4 py-3 font-bold text-slate-600">Roll No</th>
-                          <th className="px-4 py-3 font-bold text-slate-600">Name</th>
-                          <th className="px-4 py-3 font-bold text-slate-600">Email</th>
-                          <th className="px-4 py-3 font-bold text-slate-600">Semester</th>
-                          <th className="px-4 py-3 font-bold text-slate-600">Phone</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {students
-                          .filter(s => {
-                            const yearNum = Number(selectedYear);
-                            const semStart = (yearNum - 1) * 2 + 1;
-                            const semEnd = semStart + 1;
-                            return s.currentSem === semStart.toString() || s.currentSem === semEnd.toString();
-                          })
-                          .sort((a, b) => (a.rollNo || '').localeCompare(b.rollNo || '', undefined, { numeric: true }))
-                          .map(student => (
-                            <tr key={student.id} className="hover:bg-slate-50">
-                              <td className="px-4 py-3 font-medium">{student.rollNo}</td>
-                              <td className="px-4 py-3">{student.name}</td>
-                              <td className="px-4 py-3 text-slate-600">{student.email}</td>
-                              <td className="px-4 py-3 text-slate-600">Sem {student.currentSem}</td>
-                              <td className="px-4 py-3 text-slate-600">{student.phone}</td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
+                    }).length === 0 && (
+                        <p className="text-slate-500 text-sm italic mt-4">No students enrolled in this year yet.</p>
+                      )}
                   </div>
-                  {students.filter(s => {
-                    const yearNum = Number(selectedYear);
-                    const semStart = (yearNum - 1) * 2 + 1;
-                    const semEnd = semStart + 1;
-                    return s.currentSem === semStart.toString() || s.currentSem === semEnd.toString();
-                  }).length === 0 && (
-                      <p className="text-slate-500 text-sm italic mt-4">No students enrolled in this year yet.</p>
-                    )}
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
 
-        {activeTab === 'settings' && (
-          <div className="bg-white p-6 rounded border max-w-lg">
-            <h3 className="font-bold mb-4">Edit Profile</h3>
-            <form onSubmit={updateProfile} className="space-y-4">
-              <input value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} className="w-full border p-2 rounded" placeholder="Name" />
-              <input value={profile.email} onChange={e => setProfile({ ...profile, email: e.target.value })} className="w-full border p-2 rounded" placeholder="Email" />
-              <input type="password" placeholder="Current Password" value={currentPasswordInput} onChange={e => setCurrentPasswordInput(e.target.value)} className="w-full border p-2 rounded" />
-              <input type="password" placeholder="New Password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full border p-2 rounded" />
-              <button className="bg-blue-600 text-white px-4 py-2 rounded font-bold">Save Changes</button>
-            </form>
-            {profileSuccess && <p className="text-green-500 mt-2">{profileSuccess}</p>}
-          </div>
-        )}
+          {activeTab === 'settings' && (
+            <div className="bg-white p-6 rounded border max-w-lg">
+              <h3 className="font-bold mb-4">Edit Profile</h3>
+              <form onSubmit={updateProfile} className="space-y-4">
+                <input value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} className="w-full border p-2 rounded" placeholder="Name" />
+                <input value={profile.email} onChange={e => setProfile({ ...profile, email: e.target.value })} className="w-full border p-2 rounded" placeholder="Email" />
+                <input type="password" placeholder="Current Password" value={currentPasswordInput} onChange={e => setCurrentPasswordInput(e.target.value)} className="w-full border p-2 rounded" />
+                <input type="password" placeholder="New Password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full border p-2 rounded" />
+                <button className="bg-blue-600 text-white px-4 py-2 rounded font-bold">Save Changes</button>
+              </form>
+              {profileSuccess && <p className="text-green-500 mt-2">{profileSuccess}</p>}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
