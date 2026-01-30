@@ -25,7 +25,7 @@ const AdvisorDashboard: React.FC<Props> = ({ user, onLogout }) => {
   const [selectedSemester, setSelectedSemester] = useState<string | null>(null);
 
   const [newStudent, setNewStudent] = useState<Partial<User>>({ name: '', rollNo: '', registerNo: '', email: '', password: '12345678', phone: '', parentPhone: '', currentSem: '1' });
-  const [newFaculty, setNewFaculty] = useState<Partial<User>>({ name: '', email: '', password: '12345678', subjectCode: '', subjectName: '', year: '1' });
+  const [newFaculty, setNewFaculty] = useState<Partial<User>>({ name: '', email: '', password: '12345678', subjectCode: '', subjectName: '', year: '1', currentSem: '1' });
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '' });
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
@@ -56,7 +56,7 @@ const AdvisorDashboard: React.FC<Props> = ({ user, onLogout }) => {
         // Initial setup for semesters
         const yearNum = typeof user.year === 'string' ? Number(user.year) : user.year;
         const startSem = (yearNum! - 1) * 2 + 1;
-        setNewFaculty(prev => ({ ...prev, year: startSem.toString() }));
+        setNewFaculty(prev => ({ ...prev, year: startSem.toString(), currentSem: startSem.toString() }));
         setNewStudent(prev => ({ ...prev, currentSem: startSem.toString() }));
         if (!selectedSemester) setSelectedSemester(startSem.toString());
       } catch (err) {
@@ -597,6 +597,9 @@ const AdvisorDashboard: React.FC<Props> = ({ user, onLogout }) => {
                 <input required placeholder="Email" value={editingFaculty ? editingFaculty.email : newFaculty.email} onChange={e => editingFaculty ? setEditingFaculty({ ...editingFaculty, email: e.target.value }) : setNewFaculty({ ...newFaculty, email: e.target.value })} className="border rounded p-2" />
                 <input required placeholder="Subject Code" value={editingFaculty ? editingFaculty.subjectCode : newFaculty.subjectCode} onChange={e => editingFaculty ? setEditingFaculty({ ...editingFaculty, subjectCode: e.target.value }) : setNewFaculty({ ...newFaculty, subjectCode: e.target.value })} className="border rounded p-2" />
                 <input required placeholder="Subject Name" value={editingFaculty ? editingFaculty.subjectName : newFaculty.subjectName} onChange={e => editingFaculty ? setEditingFaculty({ ...editingFaculty, subjectName: e.target.value }) : setNewFaculty({ ...newFaculty, subjectName: e.target.value })} className="border rounded p-2" />
+                <select required value={editingFaculty ? editingFaculty.currentSem : newFaculty.currentSem} onChange={e => editingFaculty ? setEditingFaculty({ ...editingFaculty, currentSem: e.target.value }) : setNewFaculty({ ...newFaculty, currentSem: e.target.value })} className="border rounded p-2">
+                  {getSemesterOptions().map(sem => <option key={sem.value} value={sem.value}>{sem.label}</option>)}
+                </select>
                 <div className="flex gap-2">
                   <button className="flex-1 bg-indigo-600 text-white rounded font-bold">
                     {editingFaculty ? 'Update' : 'Add'}
@@ -617,6 +620,7 @@ const AdvisorDashboard: React.FC<Props> = ({ user, onLogout }) => {
                     <h4 className="font-bold text-slate-800">{f.subjectName}</h4>
                     <p className="text-sm text-slate-500">{f.name}</p>
                     <p className="text-xs text-slate-400">Code: {f.subjectCode}</p>
+                    <p className="text-xs text-slate-400">Semester: {f.currentSem}</p>
                   </div>
                   <div className="mt-4 pt-4 border-t flex justify-end gap-3">
                     <button onClick={() => setEditingFaculty(f)} className="text-blue-500 text-sm font-semibold">Edit</button>
