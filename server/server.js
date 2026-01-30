@@ -26,7 +26,8 @@ SmsLog.belongsTo(User, { as: 'student', foreignKey: 'studentId' });
 app.get('/api/health', async (req, res) => {
     try {
         await sequelize.authenticate();
-        res.json({ status: 'ok', database: 'connected' });
+        await sequelize.sync({ alter: true }); // Force sync in serverless
+        res.json({ status: 'ok', database: 'connected', tables: 'synced' });
     } catch (err) {
         res.status(500).json({ status: 'error', database: 'disconnected', error: err.message });
     }
