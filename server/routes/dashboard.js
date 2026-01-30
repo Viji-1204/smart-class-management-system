@@ -19,6 +19,7 @@ router.get('/:role/:id', async (req, res) => {
         if (role === 'HOD') {
             const advisors = await User.findAll({ where: { role: 'ADVISOR', department: user.department } });
             const students = await User.findAll({ where: { role: 'STUDENT', department: user.department } });
+            const faculty = await User.findAll({ where: { role: 'FACULTY', department: user.department } });
             const marks = await Mark.findAll({
                 include: [{
                     model: User,
@@ -32,7 +33,7 @@ router.get('/:role/:id', async (req, res) => {
                 studentName: m.student?.name,
                 rollNo: m.student?.rollNo
             }));
-            dashboardData = { advisors, students, marks: flattenedMarks };
+            dashboardData = { advisors, students, faculty, marks: flattenedMarks };
         }
         else if (role === 'ADVISOR') {
             const students = await User.findAll({ where: { role: 'STUDENT', department: user.department, year: user.year } });
