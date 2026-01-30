@@ -329,7 +329,7 @@ const AdvisorDashboard: React.FC<Props> = ({ user, onLogout }) => {
           const email = String(row.email || row.Email || '');
           const phone = String(row.phone || row.Phone || '');
           const parentPhone = String(row.parentPhone || row.ParentPhone || '');
-          const currentSem = String(row.currentSem || row.CurrentSem || '1');
+          const currentSem = String(row.sem || row.Sem || row.currentSem || row.CurrentSem || '1');
 
           if (!name || !rollNo || !email) {
             skipped.push({ row: rollNo || name || 'Unknown', reason: 'Missing Name, Roll No, or Email' });
