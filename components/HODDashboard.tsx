@@ -15,6 +15,9 @@ const HODDashboard: React.FC<Props> = ({ user, onLogout }) => {
   const [advisors, setAdvisors] = useState<User[]>([]);
   const [students, setStudents] = useState<User[]>([]);
   const [marks, setMarks] = useState<any[]>([]);
+  const [faculty, setFaculty] = useState<User[]>([]);
+  const [selectedYear, setSelectedYear] = useState<string | null>(null);
+
 
   const [newAdv, setNewAdv] = useState({ name: '', email: '', password: '12345678', year: '1' });
   const [editingAdvisor, setEditingAdvisor] = useState<User | null>(null);
@@ -32,6 +35,7 @@ const HODDashboard: React.FC<Props> = ({ user, onLogout }) => {
         setAdvisors(data.advisors || []);
         setStudents(data.students || []);
         setMarks(data.marks || []);
+        setFaculty(data.faculty || []);
         setProfile(user);
       } catch (err) {
         console.error('Failed to fetch HOD data', err);
@@ -235,14 +239,139 @@ const HODDashboard: React.FC<Props> = ({ user, onLogout }) => {
         )}
 
         {activeTab === 'students' && (
-          <div className="grid grid-cols-4 gap-4">
-            {['1', '2', '3', '4'].map(year => (
-              <div key={year} className="bg-white p-6 rounded border">
-                <h3 className="font-bold">{year}st Year</h3>
-                <p className="text-3xl font-bold text-blue-600 mt-2">{getPerformance(year)}%</p>
-                <p className="text-xs text-slate-400 mt-1">Average GPA</p>
+          <div className="space-y-6">
+            {!selectedYear ? (
+              <div className="grid grid-cols-4 gap-4">
+                {['1', '2', '3', '4'].map(year => (
+                  <div
+                    key={year}
+                    onClick={() => setSelectedYear(year)}
+                    className="bg-white p-6 rounded-xl border-2 border-slate-200 hover:border-blue-500 cursor-pointer transition-all hover:shadow-lg"
+                  >
+                    <h3 className="font-bold text-lg text-slate-800">{year}{year === '1' ? 'st' : year === '2' ? 'nd' : year === '3' ? 'rd' : 'th'} Year</h3>
+                    <p className="text-3xl font-bold text-blue-600 mt-2">{getPerformance(year)}%</p>
+                    <p className="text-xs text-slate-400 mt-1">Average Performance</p>
+                    <p className="text-sm text-blue-500 mt-3 font-semibold">Click to view details →</p>
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-slate-800">
+                    {selectedYear}{selectedYear === '1' ? 'st' : selectedYear === '2' ? 'nd' : selectedYear === '3' ? 'rd' : 'th'} Year Details
+                  </h2>
+                  <button
+                    onClick={() => setSelectedYear(null)}
+                    className="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg font-semibold text-slate-700 transition-colors"
+                  >
+                    ← Back to All Years
+                  </button>
+                </div>
+
+                {/* Advisor Section */}
+                <div className="bg-white p-6 rounded-xl border border-slate-200">
+                  <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <Users size={20} className="text-blue-600" />
+                    Class Advisor
+                  </h3>
+                  {advisors.filter(a => a.year === selectedYear).map(advisor => (
+                    <div key={advisor.id} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <p className="font-bold text-lg text-blue-900">{advisor.name}</p>
+                      <p className="text-sm text-blue-700">{advisor.email}</p>
+                      <p className="text-xs text-blue-600 mt-1">Year {advisor.year} Advisor</p>
+                    </div>
+                  ))}
+                  {advisors.filter(a => a.year === selectedYear).length === 0 && (
+                    <p className="text-slate-500 text-sm italic">No advisor assigned to this year yet.</p>
+                  )}
+                </div>
+
+                {/* Faculty Section */}
+                <div className="bg-white p-6 rounded-xl border border-slate-200">
+                  <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <GraduationCap size={20} className="text-green-600" />
+                    Faculty Members
+                  </h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    {faculty.filter(f => {
+                      const yearNum = Number(selectedYear);
+                      const semStart = (yearNum - 1) * 2 + 1;
+                      const semEnd = semStart + 1;
+                      return f.currentSem === semStart.toString() || f.currentSem === semEnd.toString();
+                    }).map(fac => (
+                      <div key={fac.id} className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <p className="font-bold text-green-900">{fac.subjectName}</p>
+                        <p className="text-sm text-green-700">{fac.name}</p>
+                        <p className="text-xs text-green-600">Code: {fac.subjectCode}</p>
+                        <p className="text-xs text-green-600">Sem: {fac.currentSem}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {faculty.filter(f => {
+                    const yearNum = Number(selectedYear);
+                    const semStart = (yearNum - 1) * 2 + 1;
+                    const semEnd = semStart + 1;
+                    return f.currentSem === semStart.toString() || f.currentSem === semEnd.toString();
+                  }).length === 0 && (
+                      <p className="text-slate-500 text-sm italic">No faculty assigned to this year yet.</p>
+                    )}
+                </div>
+
+                {/* Students Section */}
+                <div className="bg-white p-6 rounded-xl border border-slate-200">
+                  <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <Users size={20} className="text-purple-600" />
+                    Students ({students.filter(s => {
+                      const yearNum = Number(selectedYear);
+                      const semStart = (yearNum - 1) * 2 + 1;
+                      const semEnd = semStart + 1;
+                      return s.currentSem === semStart.toString() || s.currentSem === semEnd.toString();
+                    }).length})
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-slate-50 border-b">
+                        <tr>
+                          <th className="px-4 py-3 font-bold text-slate-600">Roll No</th>
+                          <th className="px-4 py-3 font-bold text-slate-600">Name</th>
+                          <th className="px-4 py-3 font-bold text-slate-600">Email</th>
+                          <th className="px-4 py-3 font-bold text-slate-600">Semester</th>
+                          <th className="px-4 py-3 font-bold text-slate-600">Phone</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {students
+                          .filter(s => {
+                            const yearNum = Number(selectedYear);
+                            const semStart = (yearNum - 1) * 2 + 1;
+                            const semEnd = semStart + 1;
+                            return s.currentSem === semStart.toString() || s.currentSem === semEnd.toString();
+                          })
+                          .sort((a, b) => (a.rollNo || '').localeCompare(b.rollNo || '', undefined, { numeric: true }))
+                          .map(student => (
+                            <tr key={student.id} className="hover:bg-slate-50">
+                              <td className="px-4 py-3 font-medium">{student.rollNo}</td>
+                              <td className="px-4 py-3">{student.name}</td>
+                              <td className="px-4 py-3 text-slate-600">{student.email}</td>
+                              <td className="px-4 py-3 text-slate-600">Sem {student.currentSem}</td>
+                              <td className="px-4 py-3 text-slate-600">{student.phone}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {students.filter(s => {
+                    const yearNum = Number(selectedYear);
+                    const semStart = (yearNum - 1) * 2 + 1;
+                    const semEnd = semStart + 1;
+                    return s.currentSem === semStart.toString() || s.currentSem === semEnd.toString();
+                  }).length === 0 && (
+                      <p className="text-slate-500 text-sm italic mt-4">No students enrolled in this year yet.</p>
+                    )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
