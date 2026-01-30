@@ -40,6 +40,7 @@ const AdvisorDashboard: React.FC<Props> = ({ user, onLogout }) => {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editingProfileData, setEditingProfileData] = useState({ name: '', phone: '' });
   const [profileMessage, setProfileMessage] = useState({ text: '', type: '' });
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const sortStudents = (st: User[]) => [...st].sort((a, b) =>
     (a.rollNo || '').localeCompare(b.rollNo || '', undefined, { numeric: true, sensitivity: 'base' })
@@ -465,26 +466,35 @@ const AdvisorDashboard: React.FC<Props> = ({ user, onLogout }) => {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50">
-      <div className="w-64 bg-slate-900 text-white flex flex-col">
+    <div className="flex h-screen bg-slate-50 overflow-hidden">
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col transition-transform duration-300 ease-in-out`}>
         <div className="p-6 border-b border-slate-800">
           <h2 className="text-xl font-bold text-blue-400">Advisor Portal</h2>
           <p className="text-xs text-slate-400 mt-1">{user.department} Dept | Year {user.year}</p>
         </div>
         <nav className="flex-1 p-4 space-y-2">
-          <button onClick={() => setActiveTab('students')} className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${activeTab === 'students' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
+          <button onClick={() => { setActiveTab('students'); setMobileMenuOpen(false); }} className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${activeTab === 'students' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
             <Users size={20} />
             <span>Students</span>
           </button>
-          <button onClick={() => setActiveTab('faculty')} className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${activeTab === 'faculty' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
+          <button onClick={() => { setActiveTab('faculty'); setMobileMenuOpen(false); }} className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${activeTab === 'faculty' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
             <BookOpen size={20} />
             <span>Faculty & Subjects</span>
           </button>
-          <button onClick={() => setActiveTab('marks')} className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${activeTab === 'marks' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
+          <button onClick={() => { setActiveTab('marks'); setMobileMenuOpen(false); }} className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${activeTab === 'marks' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
             <UserCheck size={20} />
             <span>Verification</span>
           </button>
-          <button onClick={() => setActiveTab('settings')} className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${activeTab === 'settings' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
+          <button onClick={() => { setActiveTab('settings'); setMobileMenuOpen(false); }} className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${activeTab === 'settings' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
             <Settings size={20} />
             <span>Settings</span>
           </button>
@@ -495,486 +505,502 @@ const AdvisorDashboard: React.FC<Props> = ({ user, onLogout }) => {
         </button>
       </div>
 
-      <div className="flex-1 overflow-auto p-8">
-        <header className="mb-8 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-slate-800">
-            {activeTab === 'students' ? 'Student Management' : activeTab === 'faculty' ? 'Faculty Management' : activeTab === 'marks' ? 'Verify & Publish' : 'Profile Settings'}
-          </h1>
-          <div className="text-slate-600 font-medium bg-white px-4 py-2 rounded-lg border shadow-sm">
-            Hi, <span className="text-blue-600 font-bold">{user.name}</span>
-          </div>
-        </header>
+      <div className="flex-1 overflow-auto">
+        {/* Mobile Header */}
+        <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+          <button onClick={() => setMobileMenuOpen(true)} className="p-2 hover:bg-slate-100 rounded-lg">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <h1 className="text-lg font-bold text-slate-800">Advisor Portal</h1>
+          <div className="w-10" /> {/* Spacer for centering */}
+        </div>
 
-        {activeTab === 'students' && (
-          <div className="space-y-6">
-            <div className="flex gap-4">
-              <div className="flex-1 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><Upload size={18} /> Bulk Upload</h3>
-                <input accept=".csv,.xlsx,.xls" type="file" onChange={handleFileUpload} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-                {publishMessage && <p className="text-green-600 text-sm mt-2 font-medium">{publishMessage}</p>}
-                {studentError && <p className="text-red-600 text-sm mt-2 font-medium">{studentError}</p>}
-              </div>
-              <div className="flex-[2] bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><UserPlus size={18} /> Manual Registration</h3>
-                {studentError && <p className="text-red-500 text-sm mb-2">{studentError}</p>}
-                <form onSubmit={handleManualStudentRegister} className="grid grid-cols-2 gap-3">
-                  <input required placeholder="Name" value={newStudent.name} onChange={e => setNewStudent({ ...newStudent, name: e.target.value })} className="border rounded p-2 text-sm" />
-                  <input required placeholder="Roll No" value={newStudent.rollNo} onChange={e => setNewStudent({ ...newStudent, rollNo: e.target.value })} className="border rounded p-2 text-sm" />
-                  <input required placeholder="Reg No" value={newStudent.registerNo} onChange={e => setNewStudent({ ...newStudent, registerNo: e.target.value })} className="border rounded p-2 text-sm" />
-                  <input required type="email" placeholder="Email" value={newStudent.email} onChange={e => setNewStudent({ ...newStudent, email: e.target.value })} className="border rounded p-2 text-sm" />
-                  <input required placeholder="Student Phone (10 digits)" value={newStudent.phone} onChange={e => setNewStudent({ ...newStudent, phone: e.target.value })} className="border rounded p-2 text-sm" />
-                  <input required placeholder="Parent Phone (10 digits)" value={newStudent.parentPhone} onChange={e => setNewStudent({ ...newStudent, parentPhone: e.target.value })} className="border rounded p-2 text-sm" />
-                  <select value={newStudent.currentSem} onChange={e => setNewStudent({ ...newStudent, currentSem: e.target.value })} className="border rounded p-2 text-sm">
-                    {getSemesterOptions().map(sem => <option key={sem.value} value={sem.value}>{sem.label}</option>)}
-                  </select>
-                  <button className="bg-blue-600 text-white rounded text-sm py-2 hover:bg-blue-700 font-bold">Add Student</button>
-                </form>
-              </div>
+        <div className="p-4 lg:p-8">
+          <header className="mb-6 lg:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-xl lg:text-2xl font-bold text-slate-800">
+                {activeTab === 'students' ? 'Student Management' : activeTab === 'faculty' ? 'Faculty Management' : activeTab === 'marks' ? 'Verify & Publish' : 'Profile Settings'}
+              </h1>
+              <p className="text-sm text-slate-500 mt-1">Year {user.year} | {user.department}</p>
             </div>
+            <div className="text-slate-600 font-medium bg-white px-4 py-2 rounded-lg border shadow-sm text-sm lg:text-base">
+              Hi, <span className="text-blue-600 font-bold">{user.name}</span>
+            </div>
+          </header>
 
-            {showUploadConfirm && uploadConfirmData && (
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-blue-200 bg-blue-50/30">
-                <h3 className="text-lg font-bold text-blue-800 mb-2">Confirm Bulk Upload</h3>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="bg-white p-3 rounded border">
-                    <p className="text-sm text-slate-500">To be added</p>
-                    <p className="text-2xl font-bold text-green-600">{uploadConfirmData.added.length}</p>
-                  </div>
-                  <div className="bg-white p-3 rounded border">
-                    <p className="text-sm text-slate-500">Skipped/Duplicate</p>
-                    <p className="text-2xl font-bold text-orange-500">{uploadConfirmData.skipped.length}</p>
-                  </div>
+          {activeTab === 'students' && (
+            <div className="space-y-6">
+              <div className="flex gap-4">
+                <div className="flex-1 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><Upload size={18} /> Bulk Upload</h3>
+                  <input accept=".csv,.xlsx,.xls" type="file" onChange={handleFileUpload} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                  {publishMessage && <p className="text-green-600 text-sm mt-2 font-medium">{publishMessage}</p>}
+                  {studentError && <p className="text-red-600 text-sm mt-2 font-medium">{studentError}</p>}
                 </div>
-
-                {uploadConfirmData.skipped.length > 0 && (
-                  <div className="mb-4 max-h-32 overflow-auto bg-white p-3 rounded border text-xs">
-                    <p className="font-bold mb-1">Skipping details:</p>
-                    <ul className="list-disc ml-4 space-y-1">
-                      {uploadConfirmData.skipped.map((s, i) => (
-                        <li key={i}><span className="font-bold">{s.row}</span>: {s.reason}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={confirmBulkUpload}
-                    className="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg"
-                  >
-                    Confirm Upload {uploadConfirmData.added.length} Students
-                  </button>
-                  <button
-                    onClick={() => { setShowUploadConfirm(false); setUploadConfirmData(null); }}
-                    className="px-6 bg-slate-200 text-slate-700 font-bold py-2 rounded-lg"
-                  >
-                    Cancel
-                  </button>
+                <div className="flex-[2] bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><UserPlus size={18} /> Manual Registration</h3>
+                  {studentError && <p className="text-red-500 text-sm mb-2">{studentError}</p>}
+                  <form onSubmit={handleManualStudentRegister} className="grid grid-cols-2 gap-3">
+                    <input required placeholder="Name" value={newStudent.name} onChange={e => setNewStudent({ ...newStudent, name: e.target.value })} className="border rounded p-2 text-sm" />
+                    <input required placeholder="Roll No" value={newStudent.rollNo} onChange={e => setNewStudent({ ...newStudent, rollNo: e.target.value })} className="border rounded p-2 text-sm" />
+                    <input required placeholder="Reg No" value={newStudent.registerNo} onChange={e => setNewStudent({ ...newStudent, registerNo: e.target.value })} className="border rounded p-2 text-sm" />
+                    <input required type="email" placeholder="Email" value={newStudent.email} onChange={e => setNewStudent({ ...newStudent, email: e.target.value })} className="border rounded p-2 text-sm" />
+                    <input required placeholder="Student Phone (10 digits)" value={newStudent.phone} onChange={e => setNewStudent({ ...newStudent, phone: e.target.value })} className="border rounded p-2 text-sm" />
+                    <input required placeholder="Parent Phone (10 digits)" value={newStudent.parentPhone} onChange={e => setNewStudent({ ...newStudent, parentPhone: e.target.value })} className="border rounded p-2 text-sm" />
+                    <select value={newStudent.currentSem} onChange={e => setNewStudent({ ...newStudent, currentSem: e.target.value })} className="border rounded p-2 text-sm">
+                      {getSemesterOptions().map(sem => <option key={sem.value} value={sem.value}>{sem.label}</option>)}
+                    </select>
+                    <button className="bg-blue-600 text-white rounded text-sm py-2 hover:bg-blue-700 font-bold">Add Student</button>
+                  </form>
                 </div>
               </div>
-            )}
 
-            {editingStudent && (
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 className="text-lg font-semibold mb-4">Edit Student Details</h3>
-                <form onSubmit={(e) => { e.preventDefault(); updateStudent(editingStudent.id, editingStudent); }} className="grid grid-cols-3 gap-3">
-                  <input placeholder="Name" value={editingStudent.name} onChange={e => setEditingStudent({ ...editingStudent, name: e.target.value })} className="border rounded p-2 text-sm" />
-                  <input placeholder="Roll No" value={editingStudent.rollNo} onChange={e => setEditingStudent({ ...editingStudent, rollNo: e.target.value })} className="border rounded p-2 text-sm" />
-                  <input placeholder="Reg No" value={editingStudent.registerNo} onChange={e => setEditingStudent({ ...editingStudent, registerNo: e.target.value })} className="border rounded p-2 text-sm" />
-                  <input placeholder="Email" value={editingStudent.email} onChange={e => setEditingStudent({ ...editingStudent, email: e.target.value })} className="border rounded p-2 text-sm" />
-                  <input placeholder="Student Phone" value={editingStudent.phone} onChange={e => setEditingStudent({ ...editingStudent, phone: e.target.value })} className="border rounded p-2 text-sm" />
-                  <input placeholder="Parent Phone" value={editingStudent.parentPhone} onChange={e => setEditingStudent({ ...editingStudent, parentPhone: e.target.value })} className="border rounded p-2 text-sm" />
-                  <select value={editingStudent.currentSem} onChange={e => setEditingStudent({ ...editingStudent, currentSem: e.target.value })} className="border rounded p-2 text-sm">
-                    {getSemesterOptions().map(sem => <option key={sem.value} value={sem.value}>{sem.label}</option>)}
-                  </select>
-                  <div className="flex gap-2">
-                    <button type="submit" className="flex-1 bg-green-600 text-white rounded text-sm font-bold">Save</button>
-                    <button type="button" onClick={() => setEditingStudent(null)} className="flex-1 bg-slate-400 text-white rounded text-sm font-bold">Cancel</button>
+              {showUploadConfirm && uploadConfirmData && (
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-blue-200 bg-blue-50/30">
+                  <h3 className="text-lg font-bold text-blue-800 mb-2">Confirm Bulk Upload</h3>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="bg-white p-3 rounded border">
+                      <p className="text-sm text-slate-500">To be added</p>
+                      <p className="text-2xl font-bold text-green-600">{uploadConfirmData.added.length}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded border">
+                      <p className="text-sm text-slate-500">Skipped/Duplicate</p>
+                      <p className="text-2xl font-bold text-orange-500">{uploadConfirmData.skipped.length}</p>
+                    </div>
                   </div>
-                </form>
-              </div>
-            )}
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-              <table className="w-full text-left">
-                <thead className="bg-slate-50 border-b">
-                  <tr>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Roll No</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Name</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Student Phone</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Parent Phone</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {students.map(s => (
-                    <tr key={s.id} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 font-medium">{s.rollNo}</td>
-                      <td className="px-4 py-3">{s.name}</td>
-                      <td className="px-4 py-3 text-sm">{s.phone}</td>
-                      <td className="px-4 py-3 text-sm">{s.parentPhone}</td>
-                      <td className="px-4 py-3 flex gap-2">
-                        <button onClick={() => setEditingStudent(s)} className="text-blue-500 text-sm">Edit</button>
-                        <button onClick={() => removeStudent(s.id)} className="text-red-500"><Trash2 size={18} /></button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+                  {uploadConfirmData.skipped.length > 0 && (
+                    <div className="mb-4 max-h-32 overflow-auto bg-white p-3 rounded border text-xs">
+                      <p className="font-bold mb-1">Skipping details:</p>
+                      <ul className="list-disc ml-4 space-y-1">
+                        {uploadConfirmData.skipped.map((s, i) => (
+                          <li key={i}><span className="font-bold">{s.row}</span>: {s.reason}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-        {activeTab === 'faculty' && (
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-              <h3 className="text-lg font-semibold mb-4">{editingFaculty ? 'Edit Faculty' : 'Register Faculty'}</h3>
-              {facultyError && <p className="text-red-500 text-sm mb-2">{facultyError}</p>}
-              <form
-                onSubmit={editingFaculty ? (e) => { e.preventDefault(); updateFaculty(editingFaculty.id, editingFaculty); } : handleManualFacultyRegister}
-                className="grid grid-cols-3 gap-4"
-              >
-                <input required placeholder="Name" value={editingFaculty ? editingFaculty.name : newFaculty.name} onChange={e => editingFaculty ? setEditingFaculty({ ...editingFaculty, name: e.target.value }) : setNewFaculty({ ...newFaculty, name: e.target.value })} className="border rounded p-2" />
-                <input required placeholder="Email" value={editingFaculty ? editingFaculty.email : newFaculty.email} onChange={e => editingFaculty ? setEditingFaculty({ ...editingFaculty, email: e.target.value }) : setNewFaculty({ ...newFaculty, email: e.target.value })} className="border rounded p-2" />
-                <input required placeholder="Subject Code" value={editingFaculty ? editingFaculty.subjectCode : newFaculty.subjectCode} onChange={e => editingFaculty ? setEditingFaculty({ ...editingFaculty, subjectCode: e.target.value }) : setNewFaculty({ ...newFaculty, subjectCode: e.target.value })} className="border rounded p-2" />
-                <input required placeholder="Subject Name" value={editingFaculty ? editingFaculty.subjectName : newFaculty.subjectName} onChange={e => editingFaculty ? setEditingFaculty({ ...editingFaculty, subjectName: e.target.value }) : setNewFaculty({ ...newFaculty, subjectName: e.target.value })} className="border rounded p-2" />
-                <select required value={editingFaculty ? editingFaculty.currentSem : newFaculty.currentSem} onChange={e => editingFaculty ? setEditingFaculty({ ...editingFaculty, currentSem: e.target.value }) : setNewFaculty({ ...newFaculty, currentSem: e.target.value })} className="border rounded p-2">
-                  {getSemesterOptions().map(sem => <option key={sem.value} value={sem.value}>{sem.label}</option>)}
-                </select>
-                <div className="flex gap-2">
-                  <button className="flex-1 bg-indigo-600 text-white rounded font-bold">
-                    {editingFaculty ? 'Update' : 'Add'}
-                  </button>
-                  {editingFaculty && (
-                    <button type="button" onClick={() => setEditingFaculty(null)} className="flex-1 bg-slate-400 text-white rounded font-bold">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={confirmBulkUpload}
+                      className="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg"
+                    >
+                      Confirm Upload {uploadConfirmData.added.length} Students
+                    </button>
+                    <button
+                      onClick={() => { setShowUploadConfirm(false); setUploadConfirmData(null); }}
+                      className="px-6 bg-slate-200 text-slate-700 font-bold py-2 rounded-lg"
+                    >
                       Cancel
                     </button>
-                  )}
-                </div>
-              </form>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              {faculty.map(f => (
-                <div key={f.id} className="bg-white p-4 rounded border shadow-sm flex flex-col justify-between">
-                  <div>
-                    <h4 className="font-bold text-slate-800">{f.subjectName}</h4>
-                    <p className="text-sm text-slate-500">{f.name}</p>
-                    <p className="text-xs text-slate-400">Code: {f.subjectCode}</p>
-                    <p className="text-xs text-slate-400">Semester: {f.currentSem}</p>
-                  </div>
-                  <div className="mt-4 pt-4 border-t flex justify-end gap-3">
-                    <button onClick={() => setEditingFaculty(f)} className="text-blue-500 text-sm font-semibold">Edit</button>
-                    <button onClick={() => removeFaculty(f.id)} className="text-red-500 font-semibold"><Trash2 size={18} /></button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              )}
 
-        {activeTab === 'marks' && (
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><CheckCircle size={18} /> Verification Filters</h3>
-              <div className="grid grid-cols-4 gap-4 items-end">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Internal</label>
-                  <div className="flex gap-2">
-                    <button onClick={() => setSelectedVerifyInternal(1)} className={`flex-1 py-2 rounded font-bold transition-colors ${selectedVerifyInternal === 1 ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Int 1</button>
-                    <button onClick={() => setSelectedVerifyInternal(2)} className={`flex-1 py-2 rounded font-bold transition-colors ${selectedVerifyInternal === 2 ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Int 2</button>
-                  </div>
+              {editingStudent && (
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                  <h3 className="text-lg font-semibold mb-4">Edit Student Details</h3>
+                  <form onSubmit={(e) => { e.preventDefault(); updateStudent(editingStudent.id, editingStudent); }} className="grid grid-cols-3 gap-3">
+                    <input placeholder="Name" value={editingStudent.name} onChange={e => setEditingStudent({ ...editingStudent, name: e.target.value })} className="border rounded p-2 text-sm" />
+                    <input placeholder="Roll No" value={editingStudent.rollNo} onChange={e => setEditingStudent({ ...editingStudent, rollNo: e.target.value })} className="border rounded p-2 text-sm" />
+                    <input placeholder="Reg No" value={editingStudent.registerNo} onChange={e => setEditingStudent({ ...editingStudent, registerNo: e.target.value })} className="border rounded p-2 text-sm" />
+                    <input placeholder="Email" value={editingStudent.email} onChange={e => setEditingStudent({ ...editingStudent, email: e.target.value })} className="border rounded p-2 text-sm" />
+                    <input placeholder="Student Phone" value={editingStudent.phone} onChange={e => setEditingStudent({ ...editingStudent, phone: e.target.value })} className="border rounded p-2 text-sm" />
+                    <input placeholder="Parent Phone" value={editingStudent.parentPhone} onChange={e => setEditingStudent({ ...editingStudent, parentPhone: e.target.value })} className="border rounded p-2 text-sm" />
+                    <select value={editingStudent.currentSem} onChange={e => setEditingStudent({ ...editingStudent, currentSem: e.target.value })} className="border rounded p-2 text-sm">
+                      {getSemesterOptions().map(sem => <option key={sem.value} value={sem.value}>{sem.label}</option>)}
+                    </select>
+                    <div className="flex gap-2">
+                      <button type="submit" className="flex-1 bg-green-600 text-white rounded text-sm font-bold">Save</button>
+                      <button type="button" onClick={() => setEditingStudent(null)} className="flex-1 bg-slate-400 text-white rounded text-sm font-bold">Cancel</button>
+                    </div>
+                  </form>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Semester</label>
-                  <select
-                    value={selectedSemester || ''}
-                    onChange={e => setSelectedSemester(e.target.value)}
-                    className="w-full border rounded p-2 text-sm bg-slate-50"
-                  >
-                    <option value="">All Semesters</option>
-                    {getSemesterOptions().map(sem => (
-                      <option key={sem.value} value={sem.value}>{sem.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => publishMarks(selectedVerifyInternal, null, selectedSemester)}
-                    className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-5 py-2 rounded-xl font-bold hover:from-emerald-700 hover:to-teal-700 transition-all shadow-sm h-[40px] flex items-center justify-center gap-2 flex-1"
-                  >
-                    <CheckCircle size={16} />
-                    Publish
-                  </button>
-                  <button
-                    onClick={sendSmsToParents}
-                    className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-5 py-2 rounded-xl font-bold hover:from-indigo-700 hover:to-blue-700 transition-all shadow-sm h-[40px] flex items-center justify-center gap-2 flex-1"
-                  >
-                    <Smartphone size={16} />
-                    Notify Parents
-                  </button>
-                </div>
-              </div>
-            </div>
+              )}
 
-            <div className="flex flex-col gap-2">
-              {publishMessage && <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100 font-bold text-sm flex items-center gap-2 shadow-sm"><CheckCircle size={16} /> {publishMessage}</div>}
-              {smsMessage && <div className="p-3 bg-indigo-50 text-indigo-700 rounded-xl border border-indigo-100 font-bold text-sm flex items-center gap-2 shadow-sm"><Smartphone size={16} /> {smsMessage}</div>}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
-                <p className="text-xs font-bold text-slate-500 uppercase mb-1">Class Average Performance</p>
-                <p className="text-2xl font-bold text-blue-600">{getAverageClassPerformance()}%</p>
-              </div>
-              <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
-                <p className="text-xs font-bold text-slate-500 uppercase mb-1">Class Average Attendance</p>
-                <p className="text-2xl font-bold text-indigo-600">{getAttendanceSummary()}%</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="p-4 border-b bg-slate-50 flex justify-between items-center">
-                <h3 className="font-bold text-slate-700">Detailed Marks View</h3>
-                <span className="text-xs font-medium px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
-                  Internal {selectedVerifyInternal}
-                </span>
-              </div>
-              <div className="overflow-x-auto">
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <table className="w-full text-left">
                   <thead className="bg-slate-50 border-b">
                     <tr>
-                      <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase sticky left-0 bg-slate-50 z-10">Roll No</th>
-                      <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase sticky left-[100px] bg-slate-50 z-10 border-r">Student Name</th>
-                      {faculty.map(f => (
-                        <th key={f.subjectCode} className="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-center min-w-[100px]">
-                          {f.subjectCode}
-                          <div className="text-[10px] font-normal normal-case opacity-60 truncate max-w-[100px]">{f.subjectName}</div>
-                        </th>
-                      ))}
-                      <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-center">Avg Attn %</th>
+                      <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Roll No</th>
+                      <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Name</th>
+                      <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Student Phone</th>
+                      <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Parent Phone</th>
+                      <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {students.map(s => {
-                      const studentMarks = marks.filter(m => m.studentId === s.id && m.internalNo === selectedVerifyInternal);
-                      const avgAttn = studentMarks.length > 0 ? (studentMarks.reduce((a, b) => a + b.attendance, 0) / studentMarks.length).toFixed(1) : '-';
-
-                      return (
-                        <tr key={s.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-4 py-3 font-medium text-slate-700 sticky left-0 bg-white group-hover:bg-slate-50">{s.rollNo}</td>
-                          <td className="px-4 py-3 text-slate-600 sticky left-[100px] bg-white group-hover:bg-slate-50 border-r">{s.name}</td>
-                          {faculty.map(f => {
-                            const mark = studentMarks.find(m => m.subjectCode === f.subjectCode);
-                            return (
-                              <td key={f.subjectCode} className="px-4 py-3 text-center">
-                                {mark ? (
-                                  <div className="flex flex-col items-center">
-                                    <span className={`font-bold ${mark.totalScore < 50 ? 'text-red-600' : 'text-green-600'}`}>
-                                      {mark.totalScore}
-                                    </span>
-                                    <span className="text-[10px] text-slate-400">{mark.attendance}% attn</span>
-                                    <span className={`text-[8px] font-bold px-1 rounded ${mark.status === 'PUBLISHED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                      {mark.status}
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <span className="text-slate-300">-</span>
-                                )}
-                              </td>
-                            );
-                          })}
-                          <td className="px-4 py-3 text-center">
-                            <span className={`font-medium ${Number(avgAttn) < 75 ? 'text-orange-600' : 'text-slate-600'}`}>
-                              {avgAttn}%
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                    {students.length === 0 && (
-                      <tr>
-                        <td colSpan={faculty.length + 3} className="px-4 py-8 text-center text-slate-400 italic">No students found for this year/department.</td>
+                    {students.map(s => (
+                      <tr key={s.id} className="hover:bg-slate-50">
+                        <td className="px-4 py-3 font-medium">{s.rollNo}</td>
+                        <td className="px-4 py-3">{s.name}</td>
+                        <td className="px-4 py-3 text-sm">{s.phone}</td>
+                        <td className="px-4 py-3 text-sm">{s.parentPhone}</td>
+                        <td className="px-4 py-3 flex gap-2">
+                          <button onClick={() => setEditingStudent(s)} className="text-blue-500 text-sm">Edit</button>
+                          <button onClick={() => removeStudent(s.id)} className="text-red-500"><Trash2 size={18} /></button>
+                        </td>
                       </tr>
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {activeTab === 'settings' && (
-          <div className="space-y-6 max-w-2xl">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                  <Shield className="text-indigo-600" size={20} />
-                  Advisor Profile Details
-                </h3>
-                {!isEditingProfile ? (
-                  <button
-                    onClick={startEditingProfile}
-                    className="text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-100 transition-colors flex items-center gap-1.5"
-                  >
-                    <Edit2 size={14} /> Edit Profile
-                  </button>
-                ) : (
+          {activeTab === 'faculty' && (
+            <div className="space-y-6">
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h3 className="text-lg font-semibold mb-4">{editingFaculty ? 'Edit Faculty' : 'Register Faculty'}</h3>
+                {facultyError && <p className="text-red-500 text-sm mb-2">{facultyError}</p>}
+                <form
+                  onSubmit={editingFaculty ? (e) => { e.preventDefault(); updateFaculty(editingFaculty.id, editingFaculty); } : handleManualFacultyRegister}
+                  className="grid grid-cols-3 gap-4"
+                >
+                  <input required placeholder="Name" value={editingFaculty ? editingFaculty.name : newFaculty.name} onChange={e => editingFaculty ? setEditingFaculty({ ...editingFaculty, name: e.target.value }) : setNewFaculty({ ...newFaculty, name: e.target.value })} className="border rounded p-2" />
+                  <input required placeholder="Email" value={editingFaculty ? editingFaculty.email : newFaculty.email} onChange={e => editingFaculty ? setEditingFaculty({ ...editingFaculty, email: e.target.value }) : setNewFaculty({ ...newFaculty, email: e.target.value })} className="border rounded p-2" />
+                  <input required placeholder="Subject Code" value={editingFaculty ? editingFaculty.subjectCode : newFaculty.subjectCode} onChange={e => editingFaculty ? setEditingFaculty({ ...editingFaculty, subjectCode: e.target.value }) : setNewFaculty({ ...newFaculty, subjectCode: e.target.value })} className="border rounded p-2" />
+                  <input required placeholder="Subject Name" value={editingFaculty ? editingFaculty.subjectName : newFaculty.subjectName} onChange={e => editingFaculty ? setEditingFaculty({ ...editingFaculty, subjectName: e.target.value }) : setNewFaculty({ ...newFaculty, subjectName: e.target.value })} className="border rounded p-2" />
+                  <select required value={editingFaculty ? editingFaculty.currentSem : newFaculty.currentSem} onChange={e => editingFaculty ? setEditingFaculty({ ...editingFaculty, currentSem: e.target.value }) : setNewFaculty({ ...newFaculty, currentSem: e.target.value })} className="border rounded p-2">
+                    {getSemesterOptions().map(sem => <option key={sem.value} value={sem.value}>{sem.label}</option>)}
+                  </select>
                   <div className="flex gap-2">
-                    <button
-                      onClick={handleProfileUpdate}
-                      className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-green-700 transition-colors flex items-center gap-1.5"
-                    >
-                      <Save size={14} /> Save
+                    <button className="flex-1 bg-indigo-600 text-white rounded font-bold">
+                      {editingFaculty ? 'Update' : 'Add'}
                     </button>
-                    <button
-                      onClick={() => setIsEditingProfile(false)}
-                      className="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-200 transition-colors flex items-center gap-1.5"
-                    >
-                      <X size={14} /> Cancel
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {profileMessage.text && (
-                <div className={`mb-6 p-3 rounded-lg flex items-center gap-2 text-sm font-medium border ${profileMessage.type === 'success' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'
-                  }`}>
-                  {profileMessage.type === 'success' ? <CheckCircle size={16} /> : <X size={16} />}
-                  {profileMessage.text}
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="p-2 bg-white rounded-lg shadow-sm">
-                    <Users size={18} className="text-indigo-500" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Full Name</p>
-                    {isEditingProfile ? (
-                      <input
-                        type="text"
-                        value={editingProfileData.name}
-                        onChange={e => setEditingProfileData({ ...editingProfileData, name: e.target.value })}
-                        className="w-full mt-1 border border-slate-200 p-1.5 rounded text-sm bg-white outline-none focus:ring-1 focus:ring-indigo-500"
-                      />
-                    ) : (
-                      <p className="font-semibold text-slate-700">{user.name}</p>
+                    {editingFaculty && (
+                      <button type="button" onClick={() => setEditingFaculty(null)} className="flex-1 bg-slate-400 text-white rounded font-bold">
+                        Cancel
+                      </button>
                     )}
                   </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="p-2 bg-white rounded-lg shadow-sm">
-                    <Mail size={18} className="text-blue-500" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Address</p>
-                    <p className="font-semibold text-slate-500 italic">{user.email} (Read only)</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="p-2 bg-white rounded-lg shadow-sm">
-                    <Briefcase size={18} className="text-orange-500" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Department</p>
-                    <p className="font-semibold text-slate-500 italic">{user.department} (Read only)</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="p-2 bg-white rounded-lg shadow-sm">
-                    <Calendar size={18} className="text-green-500" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Assigned Year</p>
-                    <p className="font-semibold text-slate-500 italic">Year {user.year} (Read only)</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="p-2 bg-white rounded-lg shadow-sm">
-                    <Phone size={18} className="text-purple-500" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Phone Number</p>
-                    {isEditingProfile ? (
-                      <input
-                        type="text"
-                        value={editingProfileData.phone}
-                        onChange={e => setEditingProfileData({ ...editingProfileData, phone: e.target.value })}
-                        placeholder="Enter phone number"
-                        className="w-full mt-1 border border-slate-200 p-1.5 rounded text-sm bg-white outline-none focus:ring-1 focus:ring-purple-500"
-                      />
-                    ) : (
-                      <p className="font-semibold text-slate-700">{user.phone || 'Not provided'}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
-                  <div className="p-2 bg-white rounded-lg shadow-sm">
-                    <UserCheck size={18} className="text-teal-500" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Role</p>
-                    <p className="font-semibold text-slate-500 italic">{user.role} (Read only)</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-              <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                <Settings className="text-blue-600" size={20} />
-                Security Settings
-              </h3>
-
-              <div className="max-w-md">
-                <p className="text-sm text-slate-500 mb-4">Update your password to keep your account secure.</p>
-                {passwordError && (
-                  <div className="mb-4 p-2 bg-red-50 text-red-600 text-xs font-bold rounded border border-red-100 italic">
-                    {passwordError}
-                  </div>
-                )}
-                {passwordSuccess && (
-                  <div className="mb-4 p-2 bg-green-50 text-green-600 text-xs font-bold rounded border border-green-100 italic">
-                    {passwordSuccess}
-                  </div>
-                )}
-
-                <form onSubmit={handlePasswordChange} className="space-y-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Current Password</label>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      value={passwordData.currentPassword}
-                      onChange={e => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                      className="w-full border border-slate-200 p-2.5 rounded-lg text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">New Password</label>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      value={passwordData.newPassword}
-                      onChange={e => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                      className="w-full border border-slate-200 p-2.5 rounded-lg text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                    />
-                  </div>
-                  <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2">
-                    Update Password
-                  </button>
                 </form>
               </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                {faculty.map(f => (
+                  <div key={f.id} className="bg-white p-4 rounded border shadow-sm flex flex-col justify-between">
+                    <div>
+                      <h4 className="font-bold text-slate-800">{f.subjectName}</h4>
+                      <p className="text-sm text-slate-500">{f.name}</p>
+                      <p className="text-xs text-slate-400">Code: {f.subjectCode}</p>
+                      <p className="text-xs text-slate-400">Semester: {f.currentSem}</p>
+                    </div>
+                    <div className="mt-4 pt-4 border-t flex justify-end gap-3">
+                      <button onClick={() => setEditingFaculty(f)} className="text-blue-500 text-sm font-semibold">Edit</button>
+                      <button onClick={() => removeFaculty(f.id)} className="text-red-500 font-semibold"><Trash2 size={18} /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {activeTab === 'marks' && (
+            <div className="space-y-6">
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><CheckCircle size={18} /> Verification Filters</h3>
+                <div className="grid grid-cols-4 gap-4 items-end">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Internal</label>
+                    <div className="flex gap-2">
+                      <button onClick={() => setSelectedVerifyInternal(1)} className={`flex-1 py-2 rounded font-bold transition-colors ${selectedVerifyInternal === 1 ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Int 1</button>
+                      <button onClick={() => setSelectedVerifyInternal(2)} className={`flex-1 py-2 rounded font-bold transition-colors ${selectedVerifyInternal === 2 ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Int 2</button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Semester</label>
+                    <select
+                      value={selectedSemester || ''}
+                      onChange={e => setSelectedSemester(e.target.value)}
+                      className="w-full border rounded p-2 text-sm bg-slate-50"
+                    >
+                      <option value="">All Semesters</option>
+                      {getSemesterOptions().map(sem => (
+                        <option key={sem.value} value={sem.value}>{sem.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => publishMarks(selectedVerifyInternal, null, selectedSemester)}
+                      className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-5 py-2 rounded-xl font-bold hover:from-emerald-700 hover:to-teal-700 transition-all shadow-sm h-[40px] flex items-center justify-center gap-2 flex-1"
+                    >
+                      <CheckCircle size={16} />
+                      Publish
+                    </button>
+                    <button
+                      onClick={sendSmsToParents}
+                      className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-5 py-2 rounded-xl font-bold hover:from-indigo-700 hover:to-blue-700 transition-all shadow-sm h-[40px] flex items-center justify-center gap-2 flex-1"
+                    >
+                      <Smartphone size={16} />
+                      Notify Parents
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                {publishMessage && <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100 font-bold text-sm flex items-center gap-2 shadow-sm"><CheckCircle size={16} /> {publishMessage}</div>}
+                {smsMessage && <div className="p-3 bg-indigo-50 text-indigo-700 rounded-xl border border-indigo-100 font-bold text-sm flex items-center gap-2 shadow-sm"><Smartphone size={16} /> {smsMessage}</div>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                  <p className="text-xs font-bold text-slate-500 uppercase mb-1">Class Average Performance</p>
+                  <p className="text-2xl font-bold text-blue-600">{getAverageClassPerformance()}%</p>
+                </div>
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                  <p className="text-xs font-bold text-slate-500 uppercase mb-1">Class Average Attendance</p>
+                  <p className="text-2xl font-bold text-indigo-600">{getAttendanceSummary()}%</p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="p-4 border-b bg-slate-50 flex justify-between items-center">
+                  <h3 className="font-bold text-slate-700">Detailed Marks View</h3>
+                  <span className="text-xs font-medium px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                    Internal {selectedVerifyInternal}
+                  </span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-slate-50 border-b">
+                      <tr>
+                        <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase sticky left-0 bg-slate-50 z-10">Roll No</th>
+                        <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase sticky left-[100px] bg-slate-50 z-10 border-r">Student Name</th>
+                        {faculty.map(f => (
+                          <th key={f.subjectCode} className="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-center min-w-[100px]">
+                            {f.subjectCode}
+                            <div className="text-[10px] font-normal normal-case opacity-60 truncate max-w-[100px]">{f.subjectName}</div>
+                          </th>
+                        ))}
+                        <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-center">Avg Attn %</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {students.map(s => {
+                        const studentMarks = marks.filter(m => m.studentId === s.id && m.internalNo === selectedVerifyInternal);
+                        const avgAttn = studentMarks.length > 0 ? (studentMarks.reduce((a, b) => a + b.attendance, 0) / studentMarks.length).toFixed(1) : '-';
+
+                        return (
+                          <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+                            <td className="px-4 py-3 font-medium text-slate-700 sticky left-0 bg-white group-hover:bg-slate-50">{s.rollNo}</td>
+                            <td className="px-4 py-3 text-slate-600 sticky left-[100px] bg-white group-hover:bg-slate-50 border-r">{s.name}</td>
+                            {faculty.map(f => {
+                              const mark = studentMarks.find(m => m.subjectCode === f.subjectCode);
+                              return (
+                                <td key={f.subjectCode} className="px-4 py-3 text-center">
+                                  {mark ? (
+                                    <div className="flex flex-col items-center">
+                                      <span className={`font-bold ${mark.totalScore < 50 ? 'text-red-600' : 'text-green-600'}`}>
+                                        {mark.totalScore}
+                                      </span>
+                                      <span className="text-[10px] text-slate-400">{mark.attendance}% attn</span>
+                                      <span className={`text-[8px] font-bold px-1 rounded ${mark.status === 'PUBLISHED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                        {mark.status}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-slate-300">-</span>
+                                  )}
+                                </td>
+                              );
+                            })}
+                            <td className="px-4 py-3 text-center">
+                              <span className={`font-medium ${Number(avgAttn) < 75 ? 'text-orange-600' : 'text-slate-600'}`}>
+                                {avgAttn}%
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {students.length === 0 && (
+                        <tr>
+                          <td colSpan={faculty.length + 3} className="px-4 py-8 text-center text-slate-400 italic">No students found for this year/department.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="space-y-6 max-w-2xl">
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <Shield className="text-indigo-600" size={20} />
+                    Advisor Profile Details
+                  </h3>
+                  {!isEditingProfile ? (
+                    <button
+                      onClick={startEditingProfile}
+                      className="text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-bold hover:bg-indigo-100 transition-colors flex items-center gap-1.5"
+                    >
+                      <Edit2 size={14} /> Edit Profile
+                    </button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleProfileUpdate}
+                        className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-green-700 transition-colors flex items-center gap-1.5"
+                      >
+                        <Save size={14} /> Save
+                      </button>
+                      <button
+                        onClick={() => setIsEditingProfile(false)}
+                        className="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-200 transition-colors flex items-center gap-1.5"
+                      >
+                        <X size={14} /> Cancel
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {profileMessage.text && (
+                  <div className={`mb-6 p-3 rounded-lg flex items-center gap-2 text-sm font-medium border ${profileMessage.type === 'success' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'
+                    }`}>
+                    {profileMessage.type === 'success' ? <CheckCircle size={16} /> : <X size={16} />}
+                    {profileMessage.text}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="p-2 bg-white rounded-lg shadow-sm">
+                      <Users size={18} className="text-indigo-500" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Full Name</p>
+                      {isEditingProfile ? (
+                        <input
+                          type="text"
+                          value={editingProfileData.name}
+                          onChange={e => setEditingProfileData({ ...editingProfileData, name: e.target.value })}
+                          className="w-full mt-1 border border-slate-200 p-1.5 rounded text-sm bg-white outline-none focus:ring-1 focus:ring-indigo-500"
+                        />
+                      ) : (
+                        <p className="font-semibold text-slate-700">{user.name}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="p-2 bg-white rounded-lg shadow-sm">
+                      <Mail size={18} className="text-blue-500" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Address</p>
+                      <p className="font-semibold text-slate-500 italic">{user.email} (Read only)</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="p-2 bg-white rounded-lg shadow-sm">
+                      <Briefcase size={18} className="text-orange-500" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Department</p>
+                      <p className="font-semibold text-slate-500 italic">{user.department} (Read only)</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="p-2 bg-white rounded-lg shadow-sm">
+                      <Calendar size={18} className="text-green-500" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Assigned Year</p>
+                      <p className="font-semibold text-slate-500 italic">Year {user.year} (Read only)</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="p-2 bg-white rounded-lg shadow-sm">
+                      <Phone size={18} className="text-purple-500" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Phone Number</p>
+                      {isEditingProfile ? (
+                        <input
+                          type="text"
+                          value={editingProfileData.phone}
+                          onChange={e => setEditingProfileData({ ...editingProfileData, phone: e.target.value })}
+                          placeholder="Enter phone number"
+                          className="w-full mt-1 border border-slate-200 p-1.5 rounded text-sm bg-white outline-none focus:ring-1 focus:ring-purple-500"
+                        />
+                      ) : (
+                        <p className="font-semibold text-slate-700">{user.phone || 'Not provided'}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="p-2 bg-white rounded-lg shadow-sm">
+                      <UserCheck size={18} className="text-teal-500" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Role</p>
+                      <p className="font-semibold text-slate-500 italic">{user.role} (Read only)</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                  <Settings className="text-blue-600" size={20} />
+                  Security Settings
+                </h3>
+
+                <div className="max-w-md">
+                  <p className="text-sm text-slate-500 mb-4">Update your password to keep your account secure.</p>
+                  {passwordError && (
+                    <div className="mb-4 p-2 bg-red-50 text-red-600 text-xs font-bold rounded border border-red-100 italic">
+                      {passwordError}
+                    </div>
+                  )}
+                  {passwordSuccess && (
+                    <div className="mb-4 p-2 bg-green-50 text-green-600 text-xs font-bold rounded border border-green-100 italic">
+                      {passwordSuccess}
+                    </div>
+                  )}
+
+                  <form onSubmit={handlePasswordChange} className="space-y-4">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Current Password</label>
+                      <input
+                        type="password"
+                        placeholder="••••••••"
+                        value={passwordData.currentPassword}
+                        onChange={e => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                        className="w-full border border-slate-200 p-2.5 rounded-lg text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">New Password</label>
+                      <input
+                        type="password"
+                        placeholder="••••••••"
+                        value={passwordData.newPassword}
+                        onChange={e => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                        className="w-full border border-slate-200 p-2.5 rounded-lg text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                      />
+                    </div>
+                    <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2">
+                      Update Password
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
