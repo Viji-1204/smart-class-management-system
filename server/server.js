@@ -22,9 +22,14 @@ Mark.belongsTo(User, { as: 'faculty', foreignKey: 'facultyId' });
 User.hasMany(SmsLog, { foreignKey: 'studentId' });
 SmsLog.belongsTo(User, { as: 'student', foreignKey: 'studentId' });
 
-// Simple Test Route
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok' });
+// Enhanced Health Check
+app.get('/api/health', async (req, res) => {
+    try {
+        await sequelize.authenticate();
+        res.json({ status: 'ok', database: 'connected' });
+    } catch (err) {
+        res.status(500).json({ status: 'error', database: 'disconnected', error: err.message });
+    }
 });
 
 // Import Routes
