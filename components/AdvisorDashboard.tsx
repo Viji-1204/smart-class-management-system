@@ -386,8 +386,10 @@ const AdvisorDashboard: React.FC<Props> = ({ user, onLogout }) => {
     if (!uploadConfirmData) return;
 
     setStudentError('');
+    setPublishMessage('');
     let successCount = 0;
     const newAdded: User[] = [];
+    const failedStudents: { rollNo: string; reason: string }[] = [];
 
     for (const student of uploadConfirmData.added) {
       try {
@@ -396,12 +398,27 @@ const AdvisorDashboard: React.FC<Props> = ({ user, onLogout }) => {
         successCount++;
       } catch (err: any) {
         console.error('Failed to register student', student.rollNo, err);
+        const errorMsg = err.response?.data?.message || 'Unknown error';
+        failedStudents.push({ rollNo: student.rollNo, reason: errorMsg });
       }
     }
 
     setStudents(prev => sortStudents([...prev, ...newAdded]));
-    setPublishMessage(`Successfully uploaded ${successCount} students.`);
-    setTimeout(() => setPublishMessage(''), 5000);
+
+    if (successCount > 0) {
+      setPublishMessage(`Successfully uploaded ${successCount} students.`);
+    }
+
+    if (failedStudents.length > 0) {
+      const errorDetails = failedStudents.map(f => `${f.rollNo}: ${f.reason}`).join('; ');
+      setStudentError(`Failed to upload ${failedStudents.length} students. ${errorDetails}`);
+    }
+
+    setTimeout(() => {
+      setPublishMessage('');
+      setStudentError('');
+    }, 8000);
+
     setShowUploadConfirm(false);
     setUploadConfirmData(null);
   };
