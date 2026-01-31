@@ -21,12 +21,11 @@ router.post('/login', async (req, res) => {
                 }
             });
         } else if (role === 'HOD') {
-            // HOD Login (matches frontendLoginPage.tsx handleLogin)
+            // HOD Login - only requires email and password
             user = await User.findOne({
                 where: {
                     email,
                     password,
-                    name,
                     role: 'HOD'
                 }
             });
