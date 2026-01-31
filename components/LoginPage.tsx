@@ -71,7 +71,7 @@ const LoginPage: React.FC<Props> = ({ onLoginSuccess }) => {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-600 via-indigo-700 to-slate-900 p-4">
       <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
         <div className="p-8">
-          <h1 className="mb-2 text-center text-3xl font-bold text-slate-800">Smart Class</h1>
+          <h1 className="mb-2 text-center text-3xl font-bold text-slate-800">Government College of Engineering</h1>
           <p className="mb-6 text-center text-slate-500">Welcome back! Please login to your account.</p>
 
           {!isSignup && (
@@ -96,7 +96,7 @@ const LoginPage: React.FC<Props> = ({ onLoginSuccess }) => {
           )}
 
           <form onSubmit={isSignup ? handleHODSignup : handleLogin} className="space-y-4">
-            {(activeRole === UserRole.HOD || activeRole === UserRole.ADVISOR || isSignup) && (
+            {isSignup && (
               <div>
                 <label className="block text-sm font-medium text-slate-700">Full Name</label>
                 <input
@@ -134,7 +134,7 @@ const LoginPage: React.FC<Props> = ({ onLoginSuccess }) => {
               />
             </div>
 
-            {(isSignup || activeRole === UserRole.ADVISOR) && (
+            {isSignup && (
               <div>
                 <label className="block text-sm font-medium text-slate-700">Department</label>
                 <select
@@ -151,24 +151,6 @@ const LoginPage: React.FC<Props> = ({ onLoginSuccess }) => {
                   <option value="IT">Information Technology</option>
                   <option value="AE">Automobile Engineering</option>
                   <option value="EEE">Electrical and Electronics Engineering</option>
-                </select>
-              </div>
-            )}
-
-            {activeRole === UserRole.ADVISOR && (
-              <div>
-                <label className="block text-sm font-medium text-slate-700">Assigned Year</label>
-                <select
-                  required
-                  value={year}
-                  onChange={(e) => setYear(e.target.value)}
-                  className="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-2 focus:border-indigo-500 focus:ring-indigo-500 outline-none transition-all bg-white"
-                >
-                  <option value="">Select Year</option>
-                  <option value="1">1st Year</option>
-                  <option value="2">2nd Year</option>
-                  <option value="3">3rd Year</option>
-                  <option value="4">4th Year</option>
                 </select>
               </div>
             )}
